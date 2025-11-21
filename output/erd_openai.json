@@ -1,0 +1,675 @@
+[
+  {
+    "table_name": "Customer",
+    "description": "Stores customer information.",
+    "attributes": [
+      {
+        "name": "customer_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "C001",
+          "C002",
+          "C003",
+          "C004",
+          "C005"
+        ]
+      },
+      {
+        "name": "full_name",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "Amit Kumar",
+          "Sara Smith",
+          "Rahul Sharma",
+          "Sunita",
+          "Ayesha Khan"
+        ]
+      },
+      {
+        "name": "email",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "amit@example.com",
+          "sara@gmail.com",
+          "rahul@abc.com",
+          "sunita@xyz.com",
+          "ayesha@gmail.com"
+        ]
+      },
+      {
+        "name": "phone",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "9876543210",
+          "9988776655",
+          " ",
+          "8877665544",
+          "9090909090"
+        ]
+      },
+      {
+        "name": "address",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "A-23 Street",
+          "C-90 Lane",
+          "11th Road",
+          " ",
+          "22C Third St"
+        ]
+      },
+      {
+        "name": "city",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "Mumbai",
+          "Delhi",
+          "Pune",
+          "Delhi",
+          "Bengaluru"
+        ]
+      },
+      {
+        "name": "state",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "MH",
+          "DL",
+          "MH",
+          "DL",
+          "KA"
+        ]
+      },
+      {
+        "name": "pincode",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "401101",
+          "110011",
+          "411001",
+          "1100A1",
+          "560001"
+        ]
+      },
+      {
+        "name": "created_at",
+        "inferred_type": "TIMESTAMP",
+        "nullable": false,
+        "example_values": [
+          "2023-05-10",
+          "2023-08-21",
+          "2023/06/12",
+          "2023-06-15",
+          "15-06-2023"
+        ]
+      }
+    ],
+    "primary_key": "customer_id",
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "customer_id": "C001",
+        "full_name": "Amit Kumar",
+        "email": "amit@example.com",
+        "phone": "9876543210",
+        "address": "A-23 Street",
+        "city": "Mumbai",
+        "state": "MH",
+        "pincode": "401101",
+        "created_at": "2023-05-10"
+      },
+      {
+        "customer_id": "C002",
+        "full_name": "Sara Smith",
+        "email": "sara@gmail.com",
+        "phone": "9988776655",
+        "address": "C-90 Lane",
+        "city": "Delhi",
+        "state": "DL",
+        "pincode": "110011",
+        "created_at": "2023-08-21"
+      },
+      {
+        "customer_id": "C003",
+        "full_name": "Rahul Sharma",
+        "email": "rahul@abc.com",
+        "phone": " ",
+        "address": "11th Road",
+        "city": "Pune",
+        "state": "MH",
+        "pincode": "411001",
+        "created_at": "2023/06/12"
+      },
+      {
+        "customer_id": "C004",
+        "full_name": "Sunita",
+        "email": " sunita@xyz.com",
+        "phone": "8877665544",
+        "address": " ",
+        "city": "Delhi",
+        "state": "DL",
+        "pincode": "1100A1",
+        "created_at": "2023-06-15"
+      },
+      {
+        "customer_id": "C005",
+        "full_name": "Ayesha Khan",
+        "email": "ayesha@gmail.com",
+        "phone": "9090909090",
+        "address": "22C Third St",
+        "city": "Bengaluru",
+        "state": "KA",
+        "pincode": "560001",
+        "created_at": "15-06-2023"
+      }
+    ]
+  },
+  {
+    "table_name": "Order",
+    "description": "Stores order information.",
+    "attributes": [
+      {
+        "name": "order_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "O001",
+          "O002",
+          "O003",
+          "O004",
+          "O005"
+        ]
+      },
+      {
+        "name": "order_date",
+        "inferred_type": "TIMESTAMP",
+        "nullable": false,
+        "example_values": [
+          "2023-05-11",
+          "2023-08-22",
+          "2023-06-13",
+          "2023-06-16",
+          "2023-06-18"
+        ]
+      },
+      {
+        "name": "cust_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "C001",
+          "C002",
+          "C003",
+          "C004",
+          "C005"
+        ]
+      }
+    ],
+    "primary_key": "order_id",
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "order_id": "O001",
+        "order_date": "2023-05-11",
+        "cust_id": "C001"
+      },
+      {
+        "order_id": "O002",
+        "order_date": "2023-08-22",
+        "cust_id": "C002"
+      },
+      {
+        "order_id": "O003",
+        "order_date": "2023-06-13",
+        "cust_id": "C003"
+      },
+      {
+        "order_id": "O004",
+        "order_date": "2023-06-16",
+        "cust_id": "C004"
+      },
+      {
+        "order_id": "O005",
+        "order_date": "2023-06-18",
+        "cust_id": "C005"
+      }
+    ]
+  },
+  {
+    "table_name": "OrderItem",
+    "description": "Stores items in each order.",
+    "attributes": [
+      {
+        "name": "order_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "O001",
+          "O002",
+          "O003",
+          "O004",
+          "O005"
+        ]
+      },
+      {
+        "name": "prod_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "P001",
+          "P002",
+          "P003",
+          "P004",
+          "P005"
+        ]
+      },
+      {
+        "name": "qty",
+        "inferred_type": "INTEGER",
+        "nullable": false,
+        "example_values": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "name": "price",
+        "inferred_type": "NUMERIC",
+        "nullable": false,
+        "example_values": [
+          100.0,
+          200.0,
+          300.0,
+          400.0,
+          500.0
+        ]
+      }
+    ],
+    "primary_key": [
+      "order_id",
+      "prod_id"
+    ],
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "order_id": "O001",
+        "prod_id": "P001",
+        "qty": 1,
+        "price": 100.0
+      },
+      {
+        "order_id": "O002",
+        "prod_id": "P002",
+        "qty": 2,
+        "price": 200.0
+      },
+      {
+        "order_id": "O003",
+        "prod_id": "P003",
+        "qty": 3,
+        "price": 300.0
+      },
+      {
+        "order_id": "O004",
+        "prod_id": "P004",
+        "qty": 4,
+        "price": 400.0
+      },
+      {
+        "order_id": "O005",
+        "prod_id": "P005",
+        "qty": 5,
+        "price": 500.0
+      }
+    ]
+  },
+  {
+    "table_name": "Product",
+    "description": "Stores product information.",
+    "attributes": [
+      {
+        "name": "prod_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "P001",
+          "P002",
+          "P003",
+          "P004",
+          "P005"
+        ]
+      },
+      {
+        "name": "prod_name",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "Product A",
+          "Product B",
+          "Product C",
+          "Product D",
+          "Product E"
+        ]
+      },
+      {
+        "name": "category",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "Electronics",
+          "Clothing",
+          "Home",
+          "Beauty",
+          "Sports"
+        ]
+      }
+    ],
+    "primary_key": "prod_id",
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "prod_id": "P001",
+        "prod_name": "Product A",
+        "category": "Electronics"
+      },
+      {
+        "prod_id": "P002",
+        "prod_name": "Product B",
+        "category": "Clothing"
+      },
+      {
+        "prod_id": "P003",
+        "prod_name": "Product C",
+        "category": "Home"
+      },
+      {
+        "prod_id": "P004",
+        "prod_name": "Product D",
+        "category": "Beauty"
+      },
+      {
+        "prod_id": "P005",
+        "prod_name": "Product E",
+        "category": "Sports"
+      }
+    ]
+  },
+  {
+    "table_name": "Payment",
+    "description": "Stores payment information.",
+    "attributes": [
+      {
+        "name": "payment_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "PAY001",
+          "PAY002",
+          "PAY003",
+          "PAY004",
+          "PAY005"
+        ]
+      },
+      {
+        "name": "order_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "O001",
+          "O002",
+          "O003",
+          "O004",
+          "O005"
+        ]
+      },
+      {
+        "name": "method",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "Credit Card",
+          "Debit Card",
+          "PayPal",
+          "Net Banking",
+          "Cash"
+        ]
+      },
+      {
+        "name": "amount",
+        "inferred_type": "NUMERIC",
+        "nullable": false,
+        "example_values": [
+          100.0,
+          200.0,
+          300.0,
+          400.0,
+          500.0
+        ]
+      },
+      {
+        "name": "currency",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "USD",
+          "INR",
+          "EUR",
+          "GBP",
+          "AUD"
+        ]
+      },
+      {
+        "name": "status",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "Completed",
+          "Pending",
+          "Failed",
+          "Refunded",
+          "Cancelled"
+        ]
+      },
+      {
+        "name": "paid_at",
+        "inferred_type": "TIMESTAMP",
+        "nullable": true,
+        "example_values": [
+          "2023-05-11",
+          "2023-08-23",
+          "2023-06-14",
+          "2023-06-17",
+          "2023-06-19"
+        ]
+      },
+      {
+        "name": "status_date",
+        "inferred_type": "TIMESTAMP",
+        "nullable": true,
+        "example_values": [
+          "2023-05-11",
+          "2023-08-23",
+          "2023-06-14",
+          "2023-06-17",
+          "2023-06-19"
+        ]
+      }
+    ],
+    "primary_key": "payment_id",
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "payment_id": "PAY001",
+        "order_id": "O001",
+        "method": "Credit Card",
+        "amount": 100.0,
+        "currency": "INR",
+        "status": "Completed",
+        "paid_at": "2023-05-11",
+        "status_date": "2023-05-11"
+      },
+      {
+        "payment_id": "PAY002",
+        "order_id": "O002",
+        "method": "Debit Card",
+        "amount": 200.0,
+        "currency": "INR",
+        "status": "Pending",
+        "paid_at": "2023-08-23",
+        "status_date": "2023-08-23"
+      },
+      {
+        "payment_id": "PAY003",
+        "order_id": "O003",
+        "method": "PayPal",
+        "amount": 300.0,
+        "currency": "USD",
+        "status": "Failed",
+        "paid_at": "2023-06-14",
+        "status_date": "2023-06-14"
+      },
+      {
+        "payment_id": "PAY004",
+        "order_id": "O004",
+        "method": "Net Banking",
+        "amount": 400.0,
+        "currency": "INR",
+        "status": "Refunded",
+        "paid_at": "2023-06-17",
+        "status_date": "2023-06-17"
+      },
+      {
+        "payment_id": "PAY005",
+        "order_id": "O005",
+        "method": "Cash",
+        "amount": 500.0,
+        "currency": "INR",
+        "status": "Cancelled",
+        "paid_at": "2023-06-19",
+        "status_date": "2023-06-19"
+      }
+    ]
+  },
+  {
+    "table_name": "Shipping",
+    "description": "Stores shipping information.",
+    "attributes": [
+      {
+        "name": "tracking_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "TRACK001",
+          "TRACK002",
+          "TRACK003",
+          "TRACK004",
+          "TRACK005"
+        ]
+      },
+      {
+        "name": "order_id",
+        "inferred_type": "TEXT",
+        "nullable": false,
+        "example_values": [
+          "O001",
+          "O002",
+          "O003",
+          "O004",
+          "O005"
+        ]
+      },
+      {
+        "name": "shipped_date",
+        "inferred_type": "TIMESTAMP",
+        "nullable": true,
+        "example_values": [
+          "2023-05-12",
+          "2023-08-24",
+          "2023-06-15",
+          "2023-06-18",
+          "2023-06-20"
+        ]
+      },
+      {
+        "name": "carrier",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "DHL",
+          "FedEx",
+          "UPS",
+          "Blue Dart",
+          "India Post"
+        ]
+      },
+      {
+        "name": "location",
+        "inferred_type": "TEXT",
+        "nullable": true,
+        "example_values": [
+          "Mumbai",
+          "Delhi",
+          "Pune",
+          "Bengaluru",
+          "Chennai"
+        ]
+      }
+    ],
+    "primary_key": "tracking_id",
+    "unique_constraints": [],
+    "indexes": [],
+    "example_rows": [
+      {
+        "tracking_id": "TRACK001",
+        "order_id": "O001",
+        "shipped_date": "2023-05-12",
+        "carrier": "DHL",
+        "location": "Mumbai"
+      },
+      {
+        "tracking_id": "TRACK002",
+        "order_id": "O002",
+        "shipped_date": "2023-08-24",
+        "carrier": "FedEx",
+        "location": "Delhi"
+      },
+      {
+        "tracking_id": "TRACK003",
+        "order_id": "O003",
+        "shipped_date": "2023-06-15",
+        "carrier": "UPS",
+        "location": "Pune"
+      },
+      {
+        "tracking_id": "TRACK004",
+        "order_id": "O004",
+        "shipped_date": "2023-06-18",
+        "carrier": "Blue Dart",
+        "location": "Bengaluru"
+      },
+      {
+        "tracking_id": "TRACK005",
+        "order_id": "O005",
+        "shipped_date": "2023-06-20",
+        "carrier": "India Post",
+        "location": "Chennai"
+      }
+    ]
+  }
+]

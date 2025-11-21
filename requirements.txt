@@ -1,0 +1,4 @@
+pandas
+openai
+pyyaml
+langgraph-sdk==0.1.0  # if you use LangGraph; remove if not installed

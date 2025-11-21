@@ -1,0 +1,24 @@
+# Import this into LangGraph. Adapt LLM adapter config to your environment.
+graph:
+  name: data_modeller_openai
+  nodes:
+    - id: file_loader
+      type: python
+      entrypoint: nodes.file_loader.load_file
+      outputs: [content_summary]
+    - id: prompt_builder
+      type: python
+      entrypoint: nodes.prompt_builder.build_prompt
+      inputs: [file_path, content_summary]
+      outputs: [prompt]
+    - id: llm_modeller
+      type: llm
+      provider: openai
+      model: gpt-4o-mini
+      entrypoint: nodes.llm_modeller.call_openai_and_parse
+      inputs: [prompt]
+      outputs: [parsed]
+    - id: output_writer
+      type: python
+      entrypoint: nodes.output_writer.write_outputs
+      inputs: [parsed, output_dir]

@@ -1,0 +1,684 @@
+[
+  {
+    "product_id": "P101",
+    "name": "iPhone 14",
+    "brand": "Apple",
+    "category": "Mobile",
+    "sub_category": "Smartphone",
+    "attributes": {
+      "color": "Blue",
+      "storage": "128GB"
+    },
+    "price": 79999
+  },
+  {
+    "product_id": "P201",
+    "name": "Apple Case",
+    "brand": "Apple",
+    "category": "Accessories",
+    "sub_category": "Covers",
+    "attributes": {
+      "color": "Black",
+      "material": "Silicone"
+    },
+    "price": 1999
+  },
+  {
+    "product_id": "P301",
+    "name": "Samsung TV",
+    "brand": "Samsung",
+    "category": "Electronics",
+    "sub_category": "TV",
+    "attributes": { "size": "55inch", "resolution": "4K" },
+    "price": "55999"
+  },
+  {
+    "product_id": "P401",
+    "name": "Boat Earbuds",
+    "brand": "boAt",
+    "category": "Audio",
+    "sub_category": "Earbuds",
+    "attributes": { "color": "Black", "battery": "20hr" },
+    "price": 2499
+  },
+  {
+    "product_id": "P402",
+    "name": "Charger",
+    "brand": "Generic",
+    "category": "Mobile",
+    "sub_category": null,
+    "attributes": { "watt": "20W" },
+    "price": 999
+  },
+  {
+    "product_id": "P501",
+    "name": "HP Laptop",
+    "brand": "HP",
+    "category": "Computers",
+    "sub_category": "Laptop",
+    "attributes": { "ram": "8GB", "storage": "512GB SSD" },
+    "price": 45999
+  },
+  {
+    "product_id": "P601",
+    "name": "Lenovo Mouse",
+    "brand": "Lenovo",
+    "category": "Accesories",
+    "sub_category": "Mouse",
+    "attributes": { "color": "Black" },
+    "price": 599
+  },
+  {
+    "product_id": "P602",
+    "name": "USB Cable",
+    "brand": "",
+    "category": "Accessories",
+    "sub_category": "",
+    "attributes": { "length": "1m" },
+    "price": 199
+  },
+  {
+    "product_id": "P603",
+    "name": "USB Cable",
+    "brand": "Generic",
+    "category": "Acc",
+    "sub_category": "Cables",
+    "attributes": {},
+    "price": "199"
+  },
+  {
+    "product_id": "P701",
+    "name": "PlayStation 5",
+    "brand": "Sony",
+    "category": "Gaming",
+    "sub_category": "Console",
+    "attributes": { "edition": "Standard" },
+    "price": 49999
+  },
+  {
+    "product_id": "P801",
+    "name": "Oppo F21",
+    "brand": "Oppo",
+    "category": "Moblie",
+    "sub_category": "Smartphone",
+    "attributes": { "color": "Orange" },
+    "price": 22999
+  },
+  {
+    "product_id": "P901",
+    "name": "Canon DSLR",
+    "brand": "Canon",
+    "category": "Electronics",
+    "sub_category": "Camera",
+    "attributes": { "lens": "18-55mm" },
+    "price": 38999
+  },
+  {
+    "product_id": "P111",
+    "name": "Realme 9",
+    "brand": "Realme",
+    "category": "Mobile",
+    "sub_category": "Smartphone",
+    "attributes": { "color": "Blue" },
+    "price": 14999
+  },
+  {
+    "product_id": "P222",
+    "name": "Tripod Stand",
+    "brand": "Generic",
+    "category": "Accessories",
+    "sub_category": "Tripod",
+    "attributes": { "height": "5ft" },
+    "price": 899
+  },
+  {
+    "product_id": "P333",
+    "name": "LG Monitor",
+    "brand": "LG",
+    "category": "Electronics",
+    "sub_category": "Monitor",
+    "attributes": { "size": "24inch" },
+    "price": 11999
+  },
+  {
+    "product_id": "P444",
+    "name": "OnePlus Nord CE",
+    "brand": "OnePlus",
+    "category": "Mobile",
+    "sub_category": "Smartphone",
+    "attributes": { "color": "Gray" },
+    "price": 28999
+  },
+  {
+    "product_id": "P555",
+    "name": "Bluetooth Speaker",
+    "brand": "Boat",
+    "category": "Audio",
+    "sub_category": "Speakers",
+    "attributes": { "battery": "10hr" },
+    "price": 2499
+  },
+  {
+    "product_id": "P666",
+    "name": "MacBook Air",
+    "brand": "Apple",
+    "category": "Computers",
+    "sub_category": "Laptop",
+    "attributes": { "screen": "13inch", "chip": "M1" },
+    "price": 109999
+  },
+  {
+    "product_id": "P667",
+    "name": "Apple Pencil",
+    "brand": "Apple",
+    "category": "Accessories",
+    "sub_category": "Stylus",
+    "attributes": { "color": "White" },
+    "price": 8999
+  },
+  {
+    "product_id": "P777",
+    "name": "Google Pixel 7",
+    "brand": "Google",
+    "category": "Mobiles",
+    "sub_category": "Smartphone",
+    "attributes": { "color": "Black" },
+    "price": 62999
+  },
+  {
+    "product_id": "P888",
+    "name": "Asus Laptop",
+    "brand": "ASUS",
+    "category": "Computers",
+    "sub_category": "Laptop",
+    "attributes": { "ram": "16GB", "storage": "1TB SSD" },
+    "price": 67999
+  },
+  {
+    "product_id": "P999",
+    "name": "Apple Watch",
+    "brand": "Apple",
+    "category": "Wearable",
+    "sub_category": "Watch",
+    "attributes": { "size": "44mm" },
+    "price": 32999
+  },
+
+  {
+    "product_id": "P121",
+    "name": "SanDisk SSD",
+    "brand": "SanDisk",
+    "category": "Storage",
+    "sub_category": "SSD",
+    "attributes": { "capacity": "512GB" },
+    "price": 3999
+  },
+  {
+    "product_id": "P131",
+    "name": "Samsung Tab A8",
+    "brand": "Samsung",
+    "category": "Electronics",
+    "sub_category": "Tablet",
+    "attributes": { "screen": "10inch" },
+    "price": 28999
+  },
+  {
+    "product_id": "P141",
+    "name": "Running Shoes",
+    "brand": "Nike",
+    "category": "Sports",
+    "sub_category": "Shoes",
+    "attributes": { "size": "9" },
+    "price": 1999
+  },
+  {
+    "product_id": "P151",
+    "name": "Graphic T-shirt",
+    "brand": "Puma",
+    "category": "Fashion",
+    "sub_category": "Tops",
+    "attributes": { "color": "Black" },
+    "price": 799
+  },
+  {
+    "product_id": "P161",
+    "name": "Sweatshirt",
+    "brand": null,
+    "category": "Fashion",
+    "sub_category": "",
+    "attributes": { "color": "Gray" },
+    "price": "1299"
+  },
+  {
+    "product_id": "P171",
+    "name": "Table Lamp",
+    "brand": "Philips",
+    "category": "Home",
+    "sub_category": "Lighting",
+    "attributes": { "color": "White" },
+    "price": 1399
+  },
+  {
+    "product_id": "P181",
+    "name": "Wallet",
+    "brand": "WildHorn",
+    "category": "Fashion",
+    "sub_category": "Leather",
+    "attributes": { "material": "Leather" },
+    "price": 999
+  },
+  {
+    "product_id": "P191",
+    "name": "Jacket",
+    "brand": "Woodland",
+    "category": "Fashion",
+    "sub_category": "Outerwear",
+    "attributes": { "color": "Brown" },
+    "price": 2499
+  },
+  {
+    "product_id": "P201DUP",
+    "name": "Apple Case",
+    "brand": "apple",
+    "category": "Accesories",
+    "sub_category": "Covers",
+    "attributes": { "color": "Black", "material": "Silicone" },
+    "price": "2099"
+  },
+  {
+    "product_id": "P221",
+    "name": "Bed Sheet Set",
+    "brand": "DDecor",
+    "category": "Home",
+    "sub_category": "Bedding",
+    "attributes": { "size": "Double" },
+    "price": 899
+  },
+  {
+    "product_id": "P231",
+    "name": "Monitor",
+    "brand": "Dell",
+    "category": "Electronics",
+    "sub_category": "Monitor",
+    "attributes": { "size": "27inch" },
+    "price": 10999
+  },
+  {
+    "product_id": "P241",
+    "name": "Keyboard",
+    "brand": "Logitech",
+    "category": "Computers",
+    "sub_category": "Input",
+    "attributes": { "type": "Wireless" },
+    "price": 499
+  },
+  {
+    "product_id": "P251",
+    "name": "Mouse",
+    "brand": "Logitech",
+    "category": "Computers",
+    "sub_category": "Input",
+    "attributes": { "type": "Bluetooth" },
+    "price": "299"
+  },
+  {
+    "product_id": "P261",
+    "name": "Microwave Oven",
+    "brand": "IFB",
+    "category": "Home",
+    "sub_category": "Appliances",
+    "attributes": { "capacity": "20L" },
+    "price": 7999
+  },
+  {
+    "product_id": "P271",
+    "name": "Sofa Cover",
+    "brand": "",
+    "category": "Home",
+    "sub_category": "Decor",
+    "attributes": {},
+    "price": 899
+  },
+  {
+    "product_id": "P281",
+    "name": "Pants",
+    "brand": "Roadster",
+    "category": "Fashion",
+    "sub_category": "Bottomwear",
+    "attributes": { "size": "32" },
+    "price": 1299
+  },
+  {
+    "product_id": "P291",
+    "name": "Shirt",
+    "brand": "Arrow",
+    "category": "Fashion",
+    "sub_category": "Topwear",
+    "attributes": { "color": "Blue" },
+    "price": 799
+  },
+  {
+    "product_id": "P301DUP",
+    "name": "Samsung LED TV",
+    "brand": "Samsung",
+    "category": "Electronics",
+    "sub_category": "Television",
+    "attributes": { "size": "50inch" },
+    "price": "50999"
+  },
+  {
+    "product_id": "P311",
+    "name": "Dining Table Set",
+    "brand": "HomeCentre",
+    "category": "Furniture",
+    "sub_category": "Dining",
+    "attributes": { "material": "Wood" },
+    "price": 12999
+  },
+  {
+    "product_id": "P321",
+    "name": "Lamp Shade",
+    "brand": null,
+    "category": "Home",
+    "sub_category": "Lighting",
+    "attributes": {},
+    "price": 1199
+  },
+  {
+    "product_id": "P331",
+    "name": "Plates Set",
+    "brand": "",
+    "category": "Kitchen",
+    "sub_category": "Utensils",
+    "attributes": { "count": "6" },
+    "price": 199
+  },
+  {
+    "product_id": "P341",
+    "name": "Curtains",
+    "brand": "Spaces",
+    "category": "Home",
+    "sub_category": "Decor",
+    "attributes": { "length": "7ft" },
+    "price": 599
+  },
+  {
+    "product_id": "P351",
+    "name": "Blanket",
+    "brand": "HomeTown",
+    "category": "Home",
+    "sub_category": "Bedding",
+    "attributes": { "size": "Queen" },
+    "price": 899
+  },
+  {
+    "product_id": "P361",
+    "name": "Room Heater",
+    "brand": "Bajaj",
+    "category": "Electronics",
+    "sub_category": "Heating",
+    "attributes": { "power": "1000W" },
+    "price": 1599
+  },
+  {
+    "product_id": "P371",
+    "name": "Bluetooth Keyboard",
+    "brand": "Dell",
+    "category": "Computers",
+    "sub_category": "Input",
+    "attributes": { "connection": "Bluetooth" },
+    "price": 799
+  },
+  {
+    "product_id": "P381",
+    "name": "Mobile Stand",
+    "brand": "Generic",
+    "category": "Accessories",
+    "sub_category": "Stand",
+    "attributes": {},
+    "price": 299
+  },
+  {
+    "product_id": "P391",
+    "name": "Desk Lamp",
+    "brand": "Philips",
+    "category": "Home",
+    "sub_category": "Lighting",
+    "attributes": { "color": "Yellow" },
+    "price": 599
+  },
+  {
+    "product_id": "P401DUP",
+    "name": "Boat Earphones",
+    "brand": "Boat",
+    "category": "Audio",
+    "sub_category": "Wired",
+    "attributes": { "color": "Black" },
+    "price": "799"
+  },
+  {
+    "product_id": "P411",
+    "name": "Office Chair",
+    "brand": "Featherlite",
+    "category": "Furniture",
+    "sub_category": "Office",
+    "attributes": { "material": "Mesh" },
+    "price": 4999
+  },
+  {
+    "product_id": "P421",
+    "name": "Scissors",
+    "brand": "",
+    "category": "Home",
+    "sub_category": "Tools",
+    "attributes": {},
+    "price": 199
+  },
+  {
+    "product_id": "P431",
+    "name": "Notebook",
+    "brand": "Classmate",
+    "category": "Stationery",
+    "sub_category": "Books",
+    "attributes": { "pages": "160" },
+    "price": 49
+  },
+  {
+    "product_id": "P441",
+    "name": "Pen Set",
+    "brand": "Reynolds",
+    "category": "Stationery",
+    "sub_category": "Writing",
+    "attributes": { "count": "3" },
+    "price": 129
+  },
+  {
+    "product_id": "P451",
+    "name": "File Holder",
+    "brand": "Oddy",
+    "category": "Stationery",
+    "sub_category": "Office",
+    "attributes": {},
+    "price": 199
+  },
+  {
+    "product_id": "P461",
+    "name": "Water Bottle",
+    "brand": "Cello",
+    "category": "Kitchen",
+    "sub_category": "Bottles",
+    "attributes": {},
+    "price": 299
+  },
+  {
+    "product_id": "P471",
+    "name": "Running Shoes",
+    "brand": "Adidas",
+    "category": "Sports",
+    "sub_category": "Shoes",
+    "attributes": { "color": "Black" },
+    "price": 1599
+  },
+  {
+    "product_id": "P481",
+    "name": "Track Pants",
+    "brand": "HRX",
+    "category": "Sports",
+    "sub_category": "Bottomwear",
+    "attributes": { "size": "L" },
+    "price": 899
+  },
+  {
+    "product_id": "P491",
+    "name": "Tennis Racket",
+    "brand": "Yonex",
+    "category": "Sports",
+    "sub_category": "Rackets",
+    "attributes": { "weight": "250g" },
+    "price": 1299
+  },
+  {
+    "product_id": "P501DUP",
+    "name": "Hair Oil",
+    "brand": "Parachute",
+    "category": "Health",
+    "sub_category": "Hair",
+    "attributes": { "volume": "300ml" },
+    "price": 199
+  },
+  {
+    "product_id": "P511",
+    "name": "Sofa",
+    "brand": "Nilkamal",
+    "category": "Furniture",
+    "sub_category": "Living Room",
+    "attributes": {},
+    "price": 14999
+  },
+  {
+    "product_id": "P521",
+    "name": "Mattress",
+    "brand": "Sleepwell",
+    "category": "Furniture",
+    "sub_category": "Bedroom",
+    "attributes": { "size": "King" },
+    "price": 7999
+  },
+  {
+    "product_id": "P531",
+    "name": "Study Table",
+    "brand": null,
+    "category": "Furniture",
+    "sub_category": "Study",
+    "attributes": {},
+    "price": 5999
+  },
+  {
+    "product_id": "P541",
+    "name": "Power Bank",
+    "brand": "Mi",
+    "category": "Electronics",
+    "sub_category": "Battery",
+    "attributes": { "capacity": "10000mAh" },
+    "price": 999
+  },
+  {
+    "product_id": "P551",
+    "name": "Cooling Fan",
+    "brand": "",
+    "category": "Home",
+    "sub_category": "Appliances",
+    "attributes": {},
+    "price": 1499
+  },
+  {
+    "product_id": "P561",
+    "name": "Shaving Kit",
+    "brand": "Gillette",
+    "category": "Personal",
+    "sub_category": "Grooming",
+    "attributes": {},
+    "price": 499
+  },
+  {
+    "product_id": "P571",
+    "name": "Mirror",
+    "brand": "Generic",
+    "category": "Home",
+    "sub_category": "Decor",
+    "attributes": {},
+    "price": 299
+  },
+  {
+    "product_id": "P581",
+    "name": "Phone Cable",
+    "brand": "Ambrane",
+    "category": "Accessories",
+    "sub_category": "Cables",
+    "attributes": { "length": "1.2m" },
+    "price": 249
+  },
+  {
+    "product_id": "P591",
+    "name": "Flash Drive",
+    "brand": "Sandisk",
+    "category": "Storage",
+    "sub_category": "USB",
+    "attributes": { "capacity": "64GB" },
+    "price": 399
+  },
+  {
+    "product_id": "P601DUP",
+    "name": "Travel Bag",
+    "brand": "Skybags",
+    "category": "Fashion",
+    "sub_category": "Accessories",
+    "attributes": {},
+    "price": 1299
+  },
+  {
+    "product_id": "P611",
+    "name": "Gaming Chair",
+    "brand": "GreenSoul",
+    "category": "Furniture",
+    "sub_category": "Gaming",
+    "attributes": {},
+    "price": 9999
+  },
+  {
+    "product_id": "P621",
+    "name": "Table Fan",
+    "brand": "",
+    "category": "Home",
+    "sub_category": "Cooling",
+    "attributes": {},
+    "price": 1599
+  },
+  {
+    "product_id": "P631",
+    "name": "Blender",
+    "brand": null,
+    "category": "Kitchen",
+    "sub_category": "Appliances",
+    "attributes": {},
+    "price": 799
+  },
+  {
+    "product_id": "P641",
+    "name": "Soap Dispenser",
+    "brand": "Generic",
+    "category": "Home",
+    "sub_category": "",
+    "attributes": {},
+    "price": 299
+  },
+  {
+    "product_id": "P651",
+    "name": "Iron Box",
+    "brand": "Philips",
+    "category": "Home",
+    "sub_category": "Appliances",
+    "attributes": {},
+    "price": 999
+  }
+]

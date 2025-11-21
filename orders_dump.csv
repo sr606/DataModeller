@@ -1,0 +1,77 @@
+order_id,order_date,cust_id,cust_name,cust_email,prod_id,prod_name,category,qty,price,payment_method,address,city,state,shipped_date,carrier,tracking_id
+1001,2024-01-10,C001,Amit Kumar,amit@example.com,P101,iPhone 14,Mobile,1,79999,UPI,A-23 Street,Mumbai,MH,2024-01-11,BlueDart,BD123
+1001,10-01-2024,C001,Amit Kumar,amit@example.com ,P201,Apple Case,Accessories,1,1999,UPI,A-23 Street,Mumbay,MH,2024/01/11,BlueDart,BD123
+1002,2024-01-11,C002,Sara Smith   ,sara@gmail.com,P301,Samsung TV,Electronics,1,55999,Card,C-90 Lane,Delhi,DL,2024-01-12,Delhivery,DL441
+1003,2024/01/11,C003,Rahul,rahul@abc.com,P401,Boat Earbuds,Audio,2,2499,COD,,Pune,MH,2024-01-13,Blue Dart,BD991
+1003,2024-1-11,C003,Rahul ,rahul@abc.com,P402,Charger ,Mobile,1, 999,COD, ,Pune,MH,13-01-2024,Blue Dart,BD991
+1004,2024-01-12,C004,Sunita,sunita@xyz.com,P501,HP Laptop,Computers,1,45999,UPI,12 Mall Road,Delhi,DL,2024-01-13,Ecom,EC112
+1005,2024-01-12,C005,Ayesha,ayesha@gmail.com,P601,Lenovo Mouse,Accessories,3,599,Card,22C Third St,Bengaluru,KA,2024-01-14,Delhivery,DL992
+1005,2024-01-12,C005,Ayesha ,ayesha123@gmail.com,P602,USB Cable,Accessories,1,199,CARD,22C Third St,Bangalore,KA,2024-14-01,Delhivery,DL992
+1006,2024-01-13,C006,Prakash,prakash@mail.com,P701,Sony PS5,Gaming,1,49999,UPI,Block 4 Street,Hyderabad,TS,2024-01-14,Ecomm Express,E12244
+1007,2024-01-13,C007,Kajol,kajol88@yahoo.com,P801,Oppo F21,Mobile,1,22999,COD,77 Market Road,Chennai,TN,2024-01-15,BlueDart,
+1008,13-01-2024,C008,Liam liam,,liam@mail.com,P901,Canon Camera,Electronics,1,38999,UPI,4A Road,Kolkata,WB,2024-01-16,Delhivery,DL221
+1009,2024-01-14,C009,Ravi Verma,ravi@verma.com,P111,Realme 9,Mobile,2,14999,COD,221 Colony,Mumbai,MH,2024-01-17,Blue Dart,BD555
+1009,2024-01-14,C009,Ravi V,ravi+spam@verma.com,P222,Tripod,Accessories,1,899,COD,221 Colony,Mumbai,MH,2024-17-01,Blue Dart,BD555
+1010,2024-01-15,C010,Karan Singh,karan@mail.com,P333,LG Monitor,Display,1,11999,CARD,West Wing Road,Delhi,DL,2024-01-17,Ecom Express,EC444
+1011,2024-01-15,C011,Heena,heena@gmail,P444,OnePlus Nord,Mobile,1,28999,UPI,New Colony,Hyd,TS,2024-01-18,Delhivery,DL777
+1012,15/01/2024,C012,Manas,manas@outlook.com,P555,Bluetooth Speaker,Audio,1,2499,UPI,55 Road,Pune,MH,2024/01/19,BlueDart,BD789
+1013,2024-01-16,C013,James,james@yahoo.com,P666,Macbook Air,Computers,1,109999,CARD,Sec 5,Delhi,DL,2024-01-20,Ecom,EC899
+1013,2024-01-16,C013,James Smith,james@yahoo.com,P667,Apple Pencil,Accessories,1,8999,Card,Sec 5,New Delhi,DL,2024-20-01,Ecom,EC899
+1014,2024-01-16,C014,Nina,nina@example.com,P777,Google Pixel,Mobile,1,62999,UPI,8 Street,Kolkatta,WB,2024-01-21,Delhivery,null
+1015,2024-01-17,C015,Arjun ,arjun@mail.com,P888,Asus Laptop,Computers,1,67999,COD,100 MG Road,Mumbai,MH,2024-01-22,Blue Dart,BD888
+1016,2024-01-17,C016,Tanya,tanya@mail.com,P999,Apple Watch,Wearable,1,32999,UPI,2 Road,Bengluru,KA,2024-01-22,Delhivery,DL999
+1017,17/01/2024,C017,Ali,ali@gmail.com,P121,Sandisk SSD,Storage,2,3999,UPI,4 Lane,Pune,MH,2024-01-23,Ecom,EC122
+1018,2024/01/17,C018,Sneha,sneha@mail,P131,Samsung Tab,Electronics,1,28999,Card,11th Street,Chennai,TN,23-01-2024,Delhivery,DL222
+1019,2024-01-18,C019,Isha,isha@gmail.com,P141,Shoes,Sports,1,1999,COD,77 Block,Delhi,DL,2024-01-25,,TR111
+1020,2024-01-18,C020,Omar,omar@mail.com,P151,T-shirt,Fashion,2,799,UPI,,Bengaluru,KA,2024-01-25,Blue Dart,BD111
+1021,2024-01-18,C021,Lucas,lucas@mail.com,P161,Sweatshirt,Fashion,1,1299,Card,Phase 3,Chandigarh,CH,2024-01-26,Ecom,EC321
+1022,2024-01-19,C022,Lara,lara@gmail.com,P171,Table Lamp,Home,1,1399,UPI,19 Street,Hyd,TS,2024/01/27,Delhivery,
+1023,2024-01-19,C023,Rishi,rishi@hotmail.com,P181,Wallet,Fashion,1,999,CARD,East Road,Pune,MH,2024-01-27,Ecomm Express,EC101
+1024,19-01-2024,C024,Maya,maya@mail.com,P191,Jacket,Fashion,1,2499,COD,Block 7,Kolkatta,WB,2024-01-30,BlueDart,BD461
+1025,2024-01-20,C025,Yatin,yatin@mail.com,P201,iPad Mini,Electronics,1,49999,UPI,88 Green Road,Mumbai,MH,2024-01-31,Delhivery,DL777
+1026,2024-01-20,C026,Reena ,reena@gmail.com,P211,Hair Dryer,Home,1,1299,CARD,33 West,Ranchi,JH,2024-01-31,Ecom,EC212
+1026,2024-01-20,C026,Reena,reena@gmail.com,P212,Perfume,Fashion,1,799,CARD,33 West,Ranchi,JH,2024-31-01,Ecom,EC212
+1027,2024/01/20,C027,Ajay,ajay@mail.com,P221,Bed Sheet,Home,2,899,CASH,Market Lane,Chennai,TN,2024-02-01,Delhivery,DLC11
+1028,2024-01-21,C028,Sarthak,sarthak@yahoo.com,P231,Monitor,Electronics,1,10999,UPI,,Delhi,DL,2024-02-02,Ecom,EC400
+1029,2024-01-21,C029,Neel,neel@mail.com,P241,Keyboard,Home,1,499,UPI,33 Street,Pune,MH,2024-02-02,Blue Dart,BD343
+1030,2024-01-22,C030,Farhan,farhan@mail.com,P251,Mouse,Home,1,299,COD,KK Street,Kochi,KL,2024-02-03,Delhivery,DL201
+1031,2024-01-22,C031,Harry,harry@mail.com,P261,Microwave,Home,1,7999,UPI,221 Hills,Ranchi,JH,2024-02-04,Ecom,
+1032,22-01-2024,C032,Anita,anita@abc.com,P271,Sofa Cover,Home,1,899,COD,Center Street,Indore,MP,2024-02-05,BlueDart,BD122
+1033,2024-01-23,C033,Rahim,rahim@mail.com,P281,Pants,Fashion,1,1299,CARD,Main Rd,Delhi,DL,2024-02-05,Delhivery,
+1034,2024/01/23,C034,Kim,kim@outlook.com,P291,Shirt,Fashion,2,799,UPI,Sec 7,Pune,MH,2024-02-06,Ecom,EC567
+1035,2024-01-23,C035,Aryan,aryan@gmail,P301,Wood Chair,Furniture,1,2999,COD,Near Mall,Hyd,TS,2024-02-07,Delhivery,DL009
+1036,2024/01/24,C036,Meera,meera@mail.com,P311,Dining Set,Furniture,1,12999,UPI,Block A,Kolkata,WB,2024-02-08,Blue Dart,BD787
+1037,2024-01-24,C037,John,john@yahoo.com,P321,Lampshade,Home,1,1199,COD,45C Road,Chennai,TN,2024-02-09,Ecom Express,
+1038,2024-01-25,C038,Mona,mona@gmail.com,P331,Plates,Home,6,199,UPI,South Road,Bhopal,MP,2024-02-10,Delhivery,DL121
+1039,2024/01/25,C039,Deepak,deepak@xyz.com,P341,Curtains,Home,2,599,COD,Main Street,Jaipur,RJ,2024-02-11,Ecom,EC990
+1040,2024-01-26,C040,Harsh,harsh@mail.com,P351,Blanket,Home,1,899,UPI,25 Road,Agra,UP,2024-02-11,Delhivery,DL010
+1041,2024-01-26,C041,Rita,rita@mail.com,P361,Heater,Electronics,1,1599,Card,ZZ Lane,Patna,BR,2024-02-12,Delhivery,
+1042,26-01-2024,C042,Jay,jay@mail.com,P371,Bluetooth KB,Electronics,1,799,CARD,Park Road,Surat,GJ,2024-02-13,,TR999
+1043,2024-01-27,C043,Vivan,vivan@mail.com,P381,Mobile Stand,Accessories,1,299,COD,Green Road,Delhi,DL,2024-02-14,Ecom,EC338
+1044,27/01/2024,C044,Zara,zara@mail.com,P391,Desk Lamp,Home,1,599,UPI,SS Lane,Pune,MH,2024-02-15,Delhivery,DL321
+1045,2024-01-27,C045,Charlie,charlie@mail.com,P401,Cotton Shirt,Fashion,1,999,COD,MM Road,Mumbai,MH,2024-02-16,Blue Dart,
+1046,2024-01-28,C046,Palak,palak@yahoo.com,P411,Office Chair,Furniture,1,4999,UPI,RR Road,Bangalore,KA,2024-02-16,Delhivery,DL522
+1047,2024-01-28,C047,Sam,sam@hotmail,P421,Scissors,Home,2,199,Card,North Lane,Kochi,KL,2024-02-16,Ecom,
+1048,2024-01-28,C048,Anmol,anmol@gmail.com,P431,Notebook,Stationery,5,49,UPI,NH Street,Indore,MP,2024-02-17,Delhivery,DL929
+1049,2024-01-29,C049,Naira,naira@mail.com,P441,Pen Set,Stationery,3,129,CARD,DR Road,Noida,UP,2024-02-18,Delhivery,
+1050,2024-29-01,C050,Vishal,vishal@outlook.com,P451,File Holder,Stationery,2,199,COD,Road 7,Lucknow,UP,2024-02-20,Ecom,EC919
+1051,2024-01-29,C051,Mike,mike@gmail.com,P461,Water Bottle,Home,1,299,UPI,Alpha Road,Delhi,DL,2024-02-20,Blue Dart,BD202
+1052,2024-01-29,C052,Krish,krish@mail.com,P471,Running Shoes,Sports,1,1599,CARD,22 Park,Kolkatta,WB,2024-02-21,Delhivery,
+1053,2024/01/30,C053,Joy,joy@yahoo.com,P481,Track Pants,Sports,1,899,CARD,RW Street,Pune,MH,2024-02-22,Ecom,EC566
+1054,2024/01/30,C054,Aarav,aarav@mail.com,P491,Tennis Racket,Sports,1,1299,UPI,TT Road,Mumbai,MH,2024-02-23,Delhivery,DL671
+1055,2024-01-30,C055,Rey,rey@mail.com,P501,Hair Oil,Home,3,199,COD,NN Street,Delhi,DL,2024-02-23,,TR001
+1056,2024-01-30,C056,Priya,priya@gmail.com,P511,Sofa,Furniture,1,14999,CARD,Block 6,Chennai,TN,2024-02-24,Delhivery,DL789
+1057,30-01-2024,C057,Nakul,nakul@mail.com,P521,Mattress,Furniture,1,7999,UPI,MM Lane,Bhopal,MP,2024-02-25,Ecom,EC999
+1058,2024-01-31,C058,Oliver,oliver@hotmail.com,P531,Study Table,Furniture,1,5999,COD,,Hyderabad,TS,2024-02-26,Delhivery,DL878
+1059,2024/01/31,C059,Mansi,mansi@mail.com,P541,Power Bank,Electronics,1,999,UPI,Block 88,Pune,MH,2024-02-26,Ecom,EC100
+1060,2024-01-31,C060,Zed,zed@mail.com,P551,Cooling Fan,Electronics,1,1499,UPI,22 Road,Kochi,KL,2024-02-27,Blue Dart,BD010
+1061,2024-02-01,C061,Simran,simran@mail.com,P561,Shaving Kit,Personal,1,499,COD,Main St,Mumbai,MH,2024-02-28,Delhivery,
+1062,2024-02-01,C062,Kabir,kabir@gmail.com,P571,Mirror,Home,1,299,CARD,NS Road,Delhi,DL,2024-02-28,Ecom,EC777
+1063,02-02-2024,C063,Steve,steve@mail.com,P581,Phone Cable,Accessories,2,249,UPI,West Block,Bengaluru,KA,2024-03-01,Delhivery,DL456
+1064,2024-02-02,C064,Aastha,aastha@mail.com,P591,Flash Drive,Storage,1,399,UPI,Sector 8,Chandigarh,CH,2024-03-01,BlueDart,BD313
+1065,2024-02-02,C065,Mehul,mehul@yahoo.com,P601,Travel Bag,Fashion,1,1299,CARD,RR Nagar,Pune,MH,2024-03-02,Ecom,EC212
+1066,2024-02-02,C066,Ronaldo,ronaldo@mail.com,P611,Gaming Chair,Furniture,1,9999,COD,South Road,Jaipur,RJ,2024-03-03,Delhivery,DL399
+1067,2024-02-03,C067,Trisha,trisha@gmail.com,P621,Table Fan,Electronics,1,1599,CARD,33C Lane,Kolkata,WB,2024-03-03,Ecom,EC511
+1068,03-02-2024,C068,Viraj,viraj@mail.com,P631,Blender,Home,1,799,UPI,CC Road,Indore,MP,2024-03-04,Blue Dart,
+1069,2024-02-03,C069,Bella,bella@mail.com,P641,Soap Dispenser,Home,1,299,UPI,88 St,Chennai,TN,2024-03-05,Delhivery,DL601
+1070,2024/02/03,C070,Chris,chris@gmail.com,P651,Iron Box,Home,1,999,COD,MG Road,Bengaluru,KA,2024-03-05,Delhivery,DL555

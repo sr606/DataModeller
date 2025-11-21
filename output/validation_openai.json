@@ -1,0 +1,12 @@
+{
+  "assumptions": [
+    "All customer IDs, order IDs, product IDs, and payment IDs are unique.",
+    "The relationship between orders and customers is mandatory.",
+    "Each order can have multiple items, and each item is associated with a product."
+  ],
+  "integrity_checks": [
+    "Ensure that all foreign key relationships are maintained.",
+    "Check for duplicate entries in primary key columns."
+  ],
+  "confidence": 1.0
+}

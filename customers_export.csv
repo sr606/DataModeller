@@ -1,0 +1,103 @@
+customer_id,full_name,email,phone,address,city,state,pincode,created_at
+C001,Amit Kumar,amit@example.com,9876543210,A-23 Street,Mumbai,MH,401101,2023-05-10
+C002,Sara Smith,sara@gmail.com,9988776655,C-90 Lane,Delhi,DL,110011,2023-08-21
+C003,Rahul Sharma,rahul@abc.com, ,11th Road,Pune,MH,411001,2023/06/12
+C004,Sunita, sunita@xyz.com,8877665544, ,Delhi,DL,1100A1,2023-06-15
+C005,Ayesha Khan,ayesha@gmail.com,9090909090,22C Third St,Bengaluru,KA,560001,15-06-2023
+C006,Prakash ,prakash@mail.com,9988221100,Block 4 Street,Hyderabad,TS,500082,2023-07-01
+C007,Kajol,kajol88@yahoo.com,,77 Market Road,Chennai,TN,600001,2023-07-02
+C008,Liam,,liam@mail.com,4A Road,Kolkata,WB,700011,2023-07-03
+C009,Ravi  Verma,ravi@verma.com, ,221 Colony,Mumbay,MH,400001,2023-07-05
+C010,Karan Singh,karan@mail.com, 9988001122,West Wing Road,New Delhi,DL,110003,2023/07/07
+C011,Heena,heena@gmail,9099221100,New Colony,Hyderabad,TS,500001,2023-07-08
+C012,Manas,manas@outlook.com, 9080706050,55 Road,Pune,MH,411002,2023/06/01
+C013,James,james@yahoo.com,7788990011,Sec 5,Delhi,DL,110022,2023-06-08
+C013,James Smith,james@yahoo.com,,Sec 5,Delhi,DL,110022,2023-06-08
+C014,Nina,nina@example.com,9988776655,8 Street,Kolkatta,WB,700019,2023-06-11
+C015,Arjun ,arjun@mail.com,8877553311,100 MG Road,Mumbai,MH,400002,2023-06-12
+C016,Tanya,tanya@mail.com,,2 Road,Bengluru,KA,56000A,2023-06-14
+C017,Ali,ali@gmail.com,9898989898,4 Lane,Pune,MH,411003,2023-06-15
+C018,Sneha,sneha@mail,,11th Street,Chennai,TN,600002,2023-05-30
+C019,Isha,isha@gmail.com,7788123490,77 Block,Delhi,DL,110021,2023-06-20
+C020,Omar,omar@mail.com, ,Bengaluru,KA,560002,2023-06-22
+C021,Lucas,lucas@mail.com,9090909099,Phase 3,Chandigarh,CH,160001,2023-06-23
+C022,Lara,lara@gmail.com,9988771122,19 Street,Hyderbad,TS,5000A2,2023-06-24
+C023,Rishi,rishi@hotmail.com, 7766554400,East Road,Pune,MH,411004,2023-06-25
+C024,Maya ,maya@mail.com,8877665544,Block 7,Kolkatta,WB,700020,2023/06/26
+C025,Yatin,yatin@mail.com,9988442211,88 Green Road,Mumbai,MH,400003,2023-06-27
+C026,Reena ,reena@gmail.com,,33 West,Ranchi,JH,834001,2023-06-28
+C026,Reena V,reena@gmail.com,9099887766,33 West,Ranchi,JH,834001,2023-06-29
+C027,Ajay,ajay@mail.com, ,Market Lane,Chennai,TN,600003,2023-06-30
+C028,Sarthak,sarthak@yahoo.com, 7788001122,,Delhi,DL,110014,2023/07/01
+C029,Neel,neel@mail.com,9988776600,33 Street,Pune,MH,411005,2023-07-02
+C030,Farhan,farhan@mail.com,7766550099,KK Street,Kochi,KL,682001,2023-07-03
+C031,Harry,harry@mail.com,,221 Hills,Ranchi,JH,834002,2023/07/04
+C032,Anita,anita@abc.com,9988772211,Center Street,Indore,MP,452001,2023/07/05
+C033,Rahim,rahim@mail.com, 9090902200,Main Rd,Delhi,DL,110015,2023-07-06
+C034,Kim,kim@outlook.com,9988770000,Sec 7,Pune,MH,411006,2023-07-07
+C035,Aryan,aryan@gmail, ,Near Mall,Hyderabad,TS,500003,2023-07-07
+C036,Meera,meera@mail.com,9988776655,Block A,Kolkata,WB,700021,2023/07/08
+C037,John,john@yahoo.com, ,45C Road,Chennai,TN,600004,2023-07-09
+C038,Mona,mona@gmail.com,8877665522,South Road,Bhopal,MP,462001,2023-07-09
+C039,Deepak,deepak@xyz.com,9568872211,Main Street,Jaipur,RJ,302001,2023-07-09
+C040,Harsh,harsh@mail.com, ,25 Road,Agra,UP,282001,2023-07-10
+C041,Rita,rita@mail.com,9099221133,ZZ Lane,Patna,BR,800001,2023-07-11
+C042,Jay,jay@mail.com,9988774433,Park Road,Surat,GJ,395003,2023/07/11
+C043,Vivan,vivan@mail.com, ,Green Road,Delhi,DL,110016,2023-07-12
+C044,Zara,zara@mail.com,7711223344,SS Lane,Pune,MH,411007,2023-07-13
+C045,Charlie,charlie@mail.com,8877661100,MM Road,Mumbai,MH,400004,2023/07/13
+C046,Palak,palak@yahoo.com, 9090903322,RR Road,Bangalore,KA,560003,2023-07-14
+C047,Sam,sam@hotmail,,North Lane,Kochi,KL,682002,2023-07-14
+C048,Anmol,anmol@gmail.com,8899776655,NH Street,Indore,MP,452002,2023-07-15
+C049,Naira,naira@mail.com,,DR Road,Noida,UP,201301,2023-07-16
+C050,Vishal,vishal@outlook.com,8877664422,Road 7,Lucknow,UP,226001,2023-07-16
+C051,Mike,mike@gmail.com, ,Alpha Road,Delhi,DL,110017,2023/07/17
+C052,Krish,krish@mail.com,9911223344,22 Park,Kolkatta,WB,700022,2023-07-18
+C053,Joy,joy@yahoo.com,8899556677,RW Street,Pune,MH,411008,2023-07-18
+C054,Aarav,aarav@mail.com, ,TT Road,Mumbai,MH,400005,2023-07-18
+C055,Rey,rey@mail.com,9000998877,NN Street,Delhi,DL,110018,2023-07-19
+C056,Priya,priya@gmail.com, ,Block 6,Chennai,TN,600005,2023-07-19
+C057,Nakul,nakul@mail.com,8877669922,MM Lane,Bhopal,MP,462002,2023/07/20
+C058,Oliver,oliver@hotmail.com, ,Hyderabad,TS,500004,2023-07-20
+C059,Mansi,mansi@mail.com,9911228899,Block 88,Pune,MH,411009,2023-07-21
+C060,Zed,zed@mail.com, ,22 Road,Kochi,KL,682003,2023-07-21
+C061,Simran,simran@mail.com,8899774411,Main St,Mumbai,MH,400006,2023-07-22
+C062,Kabir,kabir@gmail.com,9988776655,NS Road,Delhi,DL,110019,2023-07-22
+C063,Steve,steve@mail.com,7766553322,West Block,Bengaluru,KA,560004,2023/07/23
+C064,Aastha,aastha@mail.com, ,Sector 8,Chandigarh,CH,160002,2023-07-23
+C065,Mehul,mehul@yahoo.com, ,RR Nagar,Pune,MH,411010,2023/07/24
+C066,Ronaldo,ronaldo@mail.com,9988772233,South Road,Jaipur,RJ,302002,2023-07-24
+C067,Trisha,trisha@gmail.com,,33C Lane,Kolkata,WB,700023,2023/07/25
+C068,Viraj,viraj@mail.com,8899001122,CC Road,Indore,MP,452003,2023-07-25
+C069,Bella,bella@mail.com, ,88 St,Chennai,TN,600006,2023-07-26
+C070,Chris,chris@gmail.com,9988773311,MG Road,Bengaluru,KA,560005,2023-07-27
+C071,Amit Kumar,amit+spam@gmail.com,9876543211,A-23 Street,Mumbai,MH,401101,2023-07-27
+C072,Amit Kumar,amitkumar@example.com,,A-23  St., Mumbay ,MH,401101,2023-07-28
+C073,Unknown,, ,,, , ,2023-07-29
+C074,"   Priyanka  ",priya@mail.com,9090909090,House 9,Delhi,DL,110020,2023/07/30
+C075,Lokesh,lokesh@mail.com,8877664411,Ind Rd,Pune,MH,411011,2023-07-31
+C076,Kruti,kruti@gmail.com, ,Block 2,Indore,MP,452004,2023-07-31
+C077,Ron,ron@mail.com,7788992211,West End,Bhopal,MP,462003,2023-08-01
+C078,Amrita,amrita@mail.com,9898980099,Fort Area,Mumbai,MH,400007,2023-08-02
+C079,Elon,elon@mail.com,,Space Street,Hyderabad,TS,500005,2023-08-02
+C080,Aria,aria@mail.com, ,Metro Line,Kolkata,WB,700024,2023/08/03
+C081,Sameer,sameer@mail.com,7788995511,NH 44,Delhi,DL,110021,2023-08-04
+C082,Janvi,janvi@mail.com,,,Pune,MH,411012,2023-08-04
+C083,Irene,irene@mail.com,9988778811,Market Lane,Chennai,TN,600007,2023-08-05
+C084,Mohan,mohan@mail.com,9911220033,Red Road,Indore,MP,452005,2023-08-05
+C085,Neeraj,neeraj@mail.com,8899776611,Blue Road,Bhopal,MP,462004,2023-08-05
+C086,Harshit,harshit@mail.com,,NH 8,Delhi,DL,110022,2023-08-06
+C087,Anjali,anjali@mail.com,9988665533,City Center,Kolkata,WB,700025,2023-08-06
+C088,Kritika,kritika@mail.com,,JJ Street,Pune,MH,411013,2023-08-07
+C089,Atul,atul@mail.com, ,MM Street,Chennai,TN,600008,2023-08-07
+C090,Shaan,shaan@mail.com,9988775500,Main Block,Delhi,DL,110023,2023-08-08
+C091,Raghav,raghav@mail.com,8877664433,F-21 Road,Mumbai,MH,400008,2023-08-09
+C092,Geeta,geeta@mail.com, ,Lake Road,Kochi,KL,682004,2023-08-09
+C093,Lavanya,lavanya@mail.com,9011223344,Garden St,Indore,MP,452006,2023-08-10
+C094,Parth,parth@mail.com,,Main Chowk,Pune,MH,411014,2023-08-10
+C095,Rehan,rehan@mail.com,8899007766,West Road,Chennai,TN,600009,2023/08/11
+C096,Chirag,chirag@mail.com, ,Near Plaza,Mumbai,MH,400009,2023/08/11
+C097,Kaira,kaira@mail.com,9922334411,88X Road,Delhi,DL,110024,2023-08-12
+C098,Om,om@mail.com, ,44 Park,Kolkata,WB,700026,2023-08-12
+C099,Kapil,kapil@mail.com,8811990099,NN Market,Pune,MH,411015,2023-08-13
+C100,Yash,yash@mail.com,,BB Lane,Chennai,TN,600010,2023-08-13
