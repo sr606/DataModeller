@@ -1,0 +1,77 @@
+digraph LS_Sample_job1_1_2_detailed_pseudocode_detailed {
+rankdir=LR;
+fontsize=10;
+fontname="Arial";
+node [fontname="Arial", fontsize=10, style=filled];
+edge [fontname="Arial", fontsize=8];
+
+subgraph cluster_source {
+label="Source Layer";
+style=rounded;
+color=grey;
+ora_NOLSData [label="ora_NOLSData", shape=cylinder, fillcolor="#FFD1DC"];
+OraD_BARCLAYS_EMPLOYEE_ACTION [label="OraD_BARCLAYS_EMPLOYEE_ACTION", shape=cylinder, fillcolor="#FFD1DC"];
+ora_STG_F_BARCLAYS_MIDTERM_HIST [label="ora_STG_F_BARCLAYS_MIDTERM_HIST", shape=cylinder, fillcolor="#FFD1DC"];
+Ora_EMPLOYEE_ACTION_CHANGES_RULES [label="Ora_EMPLOYEE_ACTION_CHANGES_RULES", shape=cylinder, fillcolor="#FFD1DC"];
+}
+
+subgraph cluster_lookup {
+label="Lookup / Hashed Layer";
+style=rounded;
+color=blue;
+HSH_MIDTERM_HIST [label="HSH_MIDTERM_HIST", shape=cylinder, fillcolor="#E1F5FE"];
+HSH_BARCLAYS_EMPLOYEE_ACTION [label="HSH_BARCLAYS_EMPLOYEE_ACTION", shape=cylinder, fillcolor="#E1F5FE"];
+HSH_STG_F_BARCLAYS_MIDTERM_HIST [label="HSH_STG_F_BARCLAYS_MIDTERM_HIST", shape=cylinder, fillcolor="#E1F5FE"];
+EMP_ACT_CHG_REP_FLAG_HSH [label="EMP_ACT_CHG_REP_FLAG_HSH", shape=cylinder, fillcolor="#E1F5FE"];
+Rule_Lkps [label="Rule_Lkps", shape=cylinder, fillcolor="#E1F5FE"];
+HSH_TEMP_STGVAR_EMPLOYEE_CODE_CHNG [label="HSH_TEMP_STGVAR_EMPLOYEE_CODE_CHNG", shape=cylinder, fillcolor="#E1F5FE"];
+}
+
+subgraph cluster_processing {
+label="Transformation Layer";
+style=rounded;
+color=black;
+Xfm_UpdStgbarclayMidterm [label="Xfm_UpdStgbarclayMidterm", shape=box, fillcolor="#FFF9C4"];
+xfm_Employee_Changes_reporting [label="xfm_Employee_Changes_reporting", shape=box, fillcolor="#FFF9C4"];
+xfm_Reporting_flag [label="xfm_Reporting_flag\n- Transformer stage for reporting flag\n- Transform data based on input lookup tables\n- Set svReportingFlag to 'Y'\nConstraints: 1\nStage Variables: 15", shape=box, fillcolor="#FFF9C4"];
+xfm_RuleLkps [label="xfm_RuleLkps\n- Transformation stage\n- Transform data from input to output\n- Apply constraints on FIELD_NAME\nConstraints: 2", shape=box, fillcolor="#FFF9C4"];
+Ora_STG_EMPLOYEE_CHANGES_REPORTING [label="Ora_STG_EMPLOYEE_CHANGES_REPORTING", shape=box, fillcolor="#FFF9C4"];
+tfmLookupSubmittedCount [label="tfmLookupSubmittedCount\n- Transformer stage\n- Transform data from input links to output link\n- Apply constraints to filter records\nConstraints: 1\nStage Variables: 2", shape=box, fillcolor="#FFF9C4"];
+}
+
+subgraph cluster_target {
+label="Target Layer";
+style=rounded;
+color=green;
+Ora_STG_F_BARCLAYS_MIDTERM [label="Ora_STG_F_BARCLAYS_MIDTERM", shape=cylinder, fillcolor="#C8E6C9"];
+}
+tfmLookupSubmittedCount -> HSH_MIDTERM_HIST [label="tfmLookupSubmittedCount"];
+OraD_BARCLAYS_EMPLOYEE_ACTION -> HSH_BARCLAYS_EMPLOYEE_ACTION [label="OraD_BARCLAYS_EMPLOYEE_ACTION"];
+ora_STG_F_BARCLAYS_MIDTERM_HIST -> HSH_STG_F_BARCLAYS_MIDTERM_HIST [label="ora_STG_F_BARCLAYS_MIDTERM_HIST"];
+HSH_MIDTERM_HIST -> Xfm_UpdStgbarclayMidterm [label="HSH_MIDTERM_HIST"];
+tfmLookupSubmittedCount -> xfm_Employee_Changes_reporting [label="tfmLookupSubmittedCount"];
+Ora_STG_EMPLOYEE_CHANGES_REPORTING -> xfm_Reporting_flag [label="Ora_STG_EMPLOYEE_CHANGES_REPORTING"];
+Rule_Lkps -> xfm_Reporting_flag [label="Rule_Lkps"];
+xfm_Reporting_flag -> EMP_ACT_CHG_REP_FLAG_HSH [label="xfm_Reporting_flag"];
+xfm_RuleLkps -> Rule_Lkps [label="xfm_RuleLkps"];
+Ora_EMPLOYEE_ACTION_CHANGES_RULES -> xfm_RuleLkps [label="Ora_EMPLOYEE_ACTION_CHANGES_RULES"];
+Xfm_UpdStgbarclayMidterm -> Ora_STG_F_BARCLAYS_MIDTERM [label="Xfm_UpdStgbarclayMidterm"];
+xfm_Employee_Changes_reporting -> Ora_STG_EMPLOYEE_CHANGES_REPORTING [label="xfm_Employee_Changes_reporting"];
+xfm_Reporting_flag -> HSH_TEMP_STGVAR_EMPLOYEE_CODE_CHNG [label="xfm_Reporting_flag"];
+ora_NOLSData -> tfmLookupSubmittedCount [label="ora_NOLSData"];
+HSH_BARCLAYS_EMPLOYEE_ACTION -> tfmLookupSubmittedCount [label="HSH_BARCLAYS_EMPLOYEE_ACTION"];
+HSH_STG_F_BARCLAYS_MIDTERM_HIST -> tfmLookupSubmittedCount [label="HSH_STG_F_BARCLAYS_MIDTERM_HIST"];
+xfm_Reporting_flag_decision_1 [shape=diamond, label="Reporting flag constraint", fillcolor="#FADBD8"];
+xfm_Reporting_flag -> xfm_Reporting_flag_decision_1 [label="Constraint"];
+xfm_Reporting_flag_decision_1 -> EMP_ACT_CHG_REP_FLAG_HSH [label="Route when true", color=blue];
+xfm_RuleLkps_decision_1 [shape=diamond, label="Include specific fields", fillcolor="#FADBD8"];
+xfm_RuleLkps -> xfm_RuleLkps_decision_1 [label="Constraint"];
+xfm_RuleLkps_decision_1 -> Rule_Lkps [label="Route when true", color=blue];
+xfm_RuleLkps_decision_2 [shape=diamond, label="Exclude specific fields", fillcolor="#FADBD8"];
+xfm_RuleLkps -> xfm_RuleLkps_decision_2 [label="Constraint"];
+xfm_RuleLkps_decision_2 -> Rule_Lkps [label="Route when true", color=blue];
+tfmLookupSubmittedCount_decision_1 [shape=diamond, label="Filter records based on change and new record status", fillcolor="#FADBD8"];
+tfmLookupSubmittedCount -> tfmLookupSubmittedCount_decision_1 [label="Constraint"];
+tfmLookupSubmittedCount_decision_1 -> xfm_Employee_Changes_reporting [label="Route when true", color=blue];
+Note1 [shape=plaintext, label="Job Summary:\n- 4 Source Stages\n- 2 Joins\n- 128 Columns Processed\n- 31 Business Rules Applied\n- 4 Constraint Routes", fontsize=8, fillcolor="white"];
+}
