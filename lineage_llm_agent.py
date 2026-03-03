@@ -92,6 +92,7 @@ class LineageAgent:
             "sql_analysis": self.sql_analysis,
             "confidence_scoring": self.confidence_scoring,
             "llm_enrichment": self.llm_enrichment,
+            "llm_global_semantics": self.llm_global_semantics,
             "validate": self.validate,
             "generate_diagram": self.generate_diagram,
         }
@@ -177,7 +178,7 @@ class LineageAgent:
 
         prompt = (
             "Plan tool execution for ETL lineage extraction.\n"
-            "Tools: extract_structure, sql_analysis, confidence_scoring, llm_enrichment, validate, generate_diagram\n"
+            "Tools: extract_structure, sql_analysis, confidence_scoring, llm_enrichment, llm_global_semantics, validate, generate_diagram\n"
             "Return strict JSON:\n"
             "{\n"
             '  "tool_sequence": ["..."],\n'
@@ -197,6 +198,8 @@ class LineageAgent:
             seq.insert(0, "extract_structure")
         if "validate" not in seq:
             seq.append("validate")
+        if "llm_global_semantics" not in seq:
+            seq.insert(max(1, len(seq) - 2), "llm_global_semantics")
         if "generate_diagram" not in seq:
             seq.append("generate_diagram")
 
@@ -232,18 +235,39 @@ class LineageAgent:
     def sql_analysis(self, state: Dict[str, Any]) -> None:
         stages: List[Stage] = state["stages"]
         sql_complex = []
+        total_join_tokens = 0
         for s in stages:
-            sql_len = len(re.findall(r"\bSELECT\b", s.block, re.IGNORECASE))
+            sql_text = self._extract_stage_sql(s.block)
+            sql_len = len(re.findall(r"\bSELECT\b", sql_text, re.IGNORECASE))
             depth = 0
             dmax = 0
-            for ch in s.block:
+            for ch in sql_text:
                 if ch == "(":
                     depth += 1
                     dmax = max(dmax, depth)
                 elif ch == ")":
                     depth = max(0, depth - 1)
-            sql_complex.append({"stage": s.name, "select_count": sql_len, "nest_depth": dmax})
+            join_tokens = len(
+                re.findall(
+                    r"(?is)\b(?:left|right|full|inner|cross)?(?:\s+outer)?\s+join\b|\bjoin\b",
+                    sql_text,
+                )
+            )
+            total_join_tokens += join_tokens
+            sql_complex.append(
+                {"stage": s.name, "select_count": sql_len, "nest_depth": dmax, "join_tokens": join_tokens}
+            )
         state["sql_complexity"] = sql_complex
+        state["detected_join_count"] = total_join_tokens
+
+    @staticmethod
+    def _extract_stage_sql(block: str) -> str:
+        m = re.search(
+            r"(?is)SQL:\s*(.*?)(?=^\s*(StageType:|Output:|Input:|Transformations:|Constraint\s*\(|//\s*---|\Z))",
+            block,
+            re.MULTILINE,
+        )
+        return (m.group(1).strip() if m else "")
 
     def _stage_confidence(self, stage: Stage) -> float:
         score = 1.0
@@ -290,14 +314,26 @@ class LineageAgent:
                 "outputs": [x[1] for x in s.outputs],
                 "constraints": [c.expression for c in s.constraints],
                 "transformations": [{"target": t.target_col, "expr": t.expression} for t in s.transformations[:50]],
+                "stage_variables": list(s.stage_vars_defined.keys())[:40],
+                "sql_excerpt": self._extract_stage_sql(s.block)[:3000],
             }
             prompt = (
-                "Summarize stage semantics for lineage.\n"
+                "Summarize stage semantics for lineage with structural reasoning.\n"
                 "Return strict JSON:\n"
                 "{\n"
                 '  "annotation": "short role",\n'
                 '  "rules": ["up to 3 business rules"],\n'
-                '  "constraint_labels": {"exact_constraint_expression": "short decision label"}\n'
+                '  "constraint_labels": {"exact_constraint_expression": "short decision label"},\n'
+                '  "sql_semantics": {\n'
+                '    "semantic_role": "extraction|enrichment|pivot|change_detection|aggregation|rule_evaluation|Unknown",\n'
+                '    "estimated_join_complexity": "low|medium|high|Unknown",\n'
+                '    "is_row_expansion_present": true,\n'
+                '    "is_difference_detection_present": true\n'
+                "  },\n"
+                '  "rule_clusters": [\n'
+                '    {"rule_name":"...", "category":"...", "related_stagevars":["..."]}\n'
+                "  ],\n"
+                '  "lookup_type": "dimension|rule_table|fact_reference|temp_stage|Unknown"\n'
                 "}\n"
                 "Do not invent missing logic. Use Unknown when unclear."
             )
@@ -313,6 +349,15 @@ class LineageAgent:
                 for k, v in cmap.items():
                     if str(k).strip() and str(v).strip():
                         s.llm_constraint_labels[str(k).strip()] = str(v).strip()
+            sql_sem = obj.get("sql_semantics", {})
+            if isinstance(sql_sem, dict):
+                setattr(s, "llm_sql_semantics", sql_sem)
+            clusters = obj.get("rule_clusters", [])
+            if isinstance(clusters, list):
+                setattr(s, "llm_rule_clusters", clusters[:8])
+            lkt = str(obj.get("lookup_type", "")).strip()
+            if lkt:
+                setattr(s, "llm_lookup_type", lkt)
             enrich_events.append(
                 {
                     "stage": s.name,
@@ -321,9 +366,47 @@ class LineageAgent:
                     "annotation": s.llm_annotation,
                     "rules": s.llm_rules,
                     "constraint_labels": s.llm_constraint_labels,
+                    "sql_semantics": getattr(s, "llm_sql_semantics", {}),
+                    "rule_clusters": getattr(s, "llm_rule_clusters", []),
+                    "lookup_type": getattr(s, "llm_lookup_type", ""),
                 }
             )
         state["enrichment_audit"] = enrich_events
+
+    def llm_global_semantics(self, state: Dict[str, Any]) -> None:
+        stages: List[Stage] = state["stages"]
+        links: List[Tuple[str, str, str]] = state["links"]
+        payload = {
+            "stages": [{"name": s.name, "type": s.stage_type} for s in stages],
+            "edges": [{"from": a, "to": b, "link": c} for a, b, c in links],
+        }
+        prompt = (
+            "Infer ETL job-level semantics from stage graph.\n"
+            "Return strict JSON:\n"
+            "{\n"
+            '  "job_type": "short phrase",\n'
+            '  "primary_purpose": "short sentence",\n'
+            '  "key_logic_areas": ["up to 5 items"],\n'
+            '  "logical_subflows": [{"name":"...", "stages":["..."]}]\n'
+            "}\n"
+            "Do not invent stage names."
+        )
+        try:
+            obj = self.chat_json("Return JSON only.", f"{prompt}\n\n{json.dumps(payload)}", max_tokens=650)
+            state["job_semantics"] = {
+                "job_type": str(obj.get("job_type", "Unknown")).strip() or "Unknown",
+                "primary_purpose": str(obj.get("primary_purpose", "Unknown")).strip() or "Unknown",
+                "key_logic_areas": obj.get("key_logic_areas", []) if isinstance(obj.get("key_logic_areas", []), list) else [],
+                "logical_subflows": obj.get("logical_subflows", []) if isinstance(obj.get("logical_subflows", []), list) else [],
+            }
+        except Exception:
+            # Deterministic fallback summary if LLM global semantics fails.
+            state["job_semantics"] = {
+                "job_type": "ETL Lineage Pipeline",
+                "primary_purpose": "Transform and route records across staged datasets",
+                "key_logic_areas": [],
+                "logical_subflows": [],
+            }
 
     def validate(self, state: Dict[str, Any]) -> None:
         stages: List[Stage] = state["stages"]
@@ -360,6 +443,8 @@ class LineageAgent:
         links: List[Tuple[str, str, str]],
         include_lookup: bool,
         include_decisions: bool,
+        job_semantics: Dict[str, Any] | None = None,
+        detected_join_count: int | None = None,
     ) -> str:
         node_ids = {s.name: sanitize_id(s.name, f"stage_{i}") for i, s in enumerate(stages, 1)}
         downstream = {s.name: 0 for s in stages}
@@ -412,7 +497,9 @@ class LineageAgent:
             )
             for s in stages:
                 if stage_layer[s.name] == "lookup":
-                    lines.append(f'{node_ids[s.name]} [label="{_dot_escape(s.name)}", shape=cylinder, fillcolor="#E1F5FE"];')
+                    lkt = getattr(s, "llm_lookup_type", "")
+                    lbl = s.name if not lkt or lkt.lower() == "unknown" else f"{s.name}\n({lkt})"
+                    lines.append(f'{node_ids[s.name]} [label="{_dot_escape(lbl)}", shape=cylinder, fillcolor="#E1F5FE"];')
             lines.append("}")
 
         lines.extend(
@@ -429,10 +516,22 @@ class LineageAgent:
                 ann = getattr(s, "llm_annotation", "") or ""
                 rules = getattr(s, "llm_rules", [])[:2]
                 label_lines = [s.name]
+                sql_sem = getattr(s, "llm_sql_semantics", {})
+                if isinstance(sql_sem, dict):
+                    role = str(sql_sem.get("semantic_role", "")).strip()
+                    if role and role.lower() != "unknown":
+                        label_lines.append(f"- SQL role: {role}")
+                    if bool(sql_sem.get("is_row_expansion_present")):
+                        label_lines.append("- Row expansion detected")
+                    if bool(sql_sem.get("is_difference_detection_present")):
+                        label_lines.append("- Difference detection present")
                 if ann:
                     label_lines.append(f"- {ann}")
                 for r in rules:
                     label_lines.append(f"- {r}")
+                clusters = getattr(s, "llm_rule_clusters", [])
+                if isinstance(clusters, list) and clusters:
+                    label_lines.append(f"Rule Clusters: {len(clusters)}")
                 if s.constraints:
                     label_lines.append(f"Constraints: {len(s.constraints)}")
                 if s.stage_vars_defined:
@@ -498,19 +597,42 @@ class LineageAgent:
                         lines.append(f'{did} -> {node_ids[t]} [label="Route when true", color=blue];')
 
         source_count = sum(1 for s in stages if stage_layer[s.name] == "source")
-        join_count = sum(len(s.join_blocks) for s in stages)
+        join_count = detected_join_count if isinstance(detected_join_count, int) else sum(len(s.join_blocks) for s in stages)
         cols = sum(sum(1 for t in s.transformations if t.target_col != "Unknown") for s in stages)
-        rules_count = sum(sum(1 for t in s.transformations if t.is_modified) for s in stages)
+        # Semantic business-rule counting: prefer clustered rule groups over raw transformed-column counts.
+        rules_count = 0
+        for s in stages:
+            clusters = getattr(s, "llm_rule_clusters", [])
+            if isinstance(clusters, list) and clusters:
+                rules_count += len(clusters)
+            elif s.constraints:
+                rules_count += len(s.constraints)
+        if rules_count == 0:
+            rules_count = sum(len(s.constraints) for s in stages)
         decision_count = sum(len(s.constraints) for s in stages)
+        js = job_semantics or {}
+        job_type = str(js.get("job_type", "Unknown"))
+        purpose = str(js.get("primary_purpose", "Unknown"))
+        logic_areas = js.get("key_logic_areas", []) if isinstance(js.get("key_logic_areas", []), list) else []
+        subflows = js.get("logical_subflows", []) if isinstance(js.get("logical_subflows", []), list) else []
         summary = (
-            "Job Summary:\n"
+            "Semantic Summary:\n"
+            f"- Job Type: {job_type}\n"
+            f"- Purpose: {purpose}\n"
             f"- {source_count} Source Stages\n"
             f"- {join_count} Joins\n"
             f"- {cols} Columns Processed\n"
             f"- {rules_count} Business Rules Applied\n"
             f"- {decision_count} Constraint Routes"
         )
+        if logic_areas:
+            summary += "\n- Logic Areas: " + ", ".join(str(x) for x in logic_areas[:4])
         lines.append(f'Note1 [shape=plaintext, label="{_dot_escape(summary)}", fontsize=8, fillcolor="white"];')
+        if subflows:
+            sub_txt = "Subflows:\n" + "\n".join(
+                f"- {str(sf.get('name', 'Flow'))}" for sf in subflows[:3] if isinstance(sf, dict)
+            )
+            lines.append(f'Note2 [shape=plaintext, label="{_dot_escape(sub_txt)}", fontsize=8, fillcolor="white"];')
         lines.append("}")
         return "\n".join(lines)
 
@@ -524,8 +646,24 @@ class LineageAgent:
         _rankdir = "TB" if (len(stages) > 10 or chain_len > 8) else "LR"
 
         # Architecture-first rendering specialized for large DataStage jobs.
-        high = self._build_arch_dot(graph_name, stages, links, include_lookup=False, include_decisions=False)
-        detailed = self._build_arch_dot(graph_name + "_detailed", stages, links, include_lookup=True, include_decisions=True)
+        high = self._build_arch_dot(
+            graph_name,
+            stages,
+            links,
+            include_lookup=False,
+            include_decisions=False,
+            job_semantics=state.get("job_semantics", {}),
+            detected_join_count=state.get("detected_join_count"),
+        )
+        detailed = self._build_arch_dot(
+            graph_name + "_detailed",
+            stages,
+            links,
+            include_lookup=True,
+            include_decisions=True,
+            job_semantics=state.get("job_semantics", {}),
+            detected_join_count=state.get("detected_join_count"),
+        )
         state["high_dot"] = high
         state["detailed_dot"] = detailed
         state["final_output"] = "\n".join(
