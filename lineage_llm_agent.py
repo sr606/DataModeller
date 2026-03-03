@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from dataclasses import asdict
 from typing import Any, Dict, List, Tuple
 
 from openai import AzureOpenAI
@@ -283,6 +282,81 @@ class LineageAgent:
             score -= 0.1
         return _clamp(score, 0.0, 1.0)
 
+    @staticmethod
+    def _extract_stagevars_multiline(block: str) -> Dict[str, str]:
+        out: Dict[str, str] = {}
+        section = re.search(
+            r"(?is)Stage Variables:\s*(.*?)(?=^\s*(Constraint\s*\(|StageType:|Transformations:|Output:|Input:|Link File|//\s*---|\Z))",
+            block,
+            re.MULTILINE,
+        )
+        if not section:
+            return out
+        text = section.group(1)
+        pat = re.compile(
+            r"(?is)StageVar\s+([A-Za-z_]\w*)\s*=\s*(.*?)(?=^\s*StageVar\s+[A-Za-z_]\w*\s*=|^\s*(?:Constraint\s*\(|StageType:|Transformations:|Output:|Input:|Link File|//\s*---|\Z))",
+            re.MULTILINE,
+        )
+        for m in pat.finditer(text):
+            name = m.group(1).strip()
+            expr = re.sub(r"\s+", " ", m.group(2)).strip()
+            if name and expr:
+                out[name] = expr
+        return out
+
+    @staticmethod
+    def _cluster_stagevars(stagevars: Dict[str, str]) -> List[Dict[str, Any]]:
+        groups: Dict[str, List[str]] = {
+            "Eligibility": [],
+            "Live Status": [],
+            "Transition": [],
+            "Aggregation": [],
+            "Lookup Checks": [],
+            "Other": [],
+        }
+        for name, expr in stagevars.items():
+            key = f"{name} {expr}".lower()
+            if any(x in key for x in ["canquote", "canorder", "authtype", "termveh", "callbar"]):
+                groups["Eligibility"].append(name)
+            elif any(x in key for x in ["liveorder", "liveveh", "quotecount", "authquote"]):
+                groups["Live Status"].append(name)
+            elif any(x in key for x in ["newneeds", "droppedneeds", "flagchange"]):
+                groups["Transition"].append(name)
+            elif any(x in key for x in ["reportingflag", "svreportingflag", "aggregation"]):
+                groups["Aggregation"].append(name)
+            elif any(x in key for x in ["notfound", "lkp", "lookup"]):
+                groups["Lookup Checks"].append(name)
+            else:
+                groups["Other"].append(name)
+        out: List[Dict[str, Any]] = []
+        for k, vals in groups.items():
+            if vals:
+                out.append({"category": k, "stagevars": vals})
+        return out
+
+    @staticmethod
+    def _chunk_sql_by_sections(sql_text: str, max_chunk: int = 2600) -> List[str]:
+        if not sql_text:
+            return []
+        # Semantic split by SQL section keywords at line/word boundaries.
+        parts = re.split(
+            r"(?is)(?=\bSELECT\b|\bFROM\b|\bLEFT\s+OUTER\s+JOIN\b|\bLEFT\s+JOIN\b|\bINNER\s+JOIN\b|\bRIGHT\s+JOIN\b|\bCROSS\s+JOIN\b|\bWHERE\b|\bGROUP\s+BY\b|\bORDER\s+BY\b)",
+            sql_text,
+        )
+        parts = [p.strip() for p in parts if p and p.strip()]
+        chunks: List[str] = []
+        cur = ""
+        for p in parts:
+            if len(cur) + len(p) + 1 <= max_chunk:
+                cur = (cur + " " + p).strip()
+            else:
+                if cur:
+                    chunks.append(cur)
+                cur = p
+        if cur:
+            chunks.append(cur)
+        return chunks[:8]
+
     def confidence_scoring(self, state: Dict[str, Any]) -> None:
         stages: List[Stage] = state["stages"]
         conf = {s.name: self._stage_confidence(s) for s in stages}
@@ -302,8 +376,21 @@ class LineageAgent:
                 setattr(s, "llm_rules", [])
             if not hasattr(s, "llm_constraint_labels"):
                 setattr(s, "llm_constraint_labels", {})
+            sql_text = self._extract_stage_sql(s.block)
+            has_sql = bool(sql_text.strip())
+            setattr(s, "has_sql", has_sql)
             low_conf = conf.get(s.name, 1.0) < threshold
-            complex_stage = len(s.join_blocks) > 4 or len(s.constraints) > 0 or len(s.stage_vars_defined) > 5
+            stagevars_full = self._extract_stagevars_multiline(s.block)
+            setattr(s, "stage_vars_full", stagevars_full)
+            sv_clusters = self._cluster_stagevars(stagevars_full)
+            setattr(s, "stage_var_clusters", sv_clusters)
+            complex_stage = (
+                len(s.join_blocks) > 4
+                or len(s.constraints) > 0
+                or len(stagevars_full) > 5
+                or "hashedfile" in s.stage_type.lower()
+                or has_sql
+            )
             if not (low_conf or complex_stage):
                 continue
 
@@ -314,8 +401,8 @@ class LineageAgent:
                 "outputs": [x[1] for x in s.outputs],
                 "constraints": [c.expression for c in s.constraints],
                 "transformations": [{"target": t.target_col, "expr": t.expression} for t in s.transformations[:50]],
-                "stage_variables": list(s.stage_vars_defined.keys())[:40],
-                "sql_excerpt": self._extract_stage_sql(s.block)[:3000],
+                "stage_variables": [{"name": k, "logic": v[:500]} for k, v in list(stagevars_full.items())[:30]],
+                "stagevar_clusters_seed": sv_clusters,
             }
             prompt = (
                 "Summarize stage semantics for lineage with structural reasoning.\n"
@@ -324,17 +411,12 @@ class LineageAgent:
                 '  "annotation": "short role",\n'
                 '  "rules": ["up to 3 business rules"],\n'
                 '  "constraint_labels": {"exact_constraint_expression": "short decision label"},\n'
-                '  "sql_semantics": {\n'
-                '    "semantic_role": "extraction|enrichment|pivot|change_detection|aggregation|rule_evaluation|Unknown",\n'
-                '    "estimated_join_complexity": "low|medium|high|Unknown",\n'
-                '    "is_row_expansion_present": true,\n'
-                '    "is_difference_detection_present": true\n'
-                "  },\n"
                 '  "rule_clusters": [\n'
-                '    {"rule_name":"...", "category":"...", "related_stagevars":["..."]}\n'
+                '    {"rule_name":"...", "category":"...", "related_stagevars":["..."], "description":"..."}\n'
                 "  ],\n"
                 '  "lookup_type": "dimension|rule_table|fact_reference|temp_stage|Unknown"\n'
                 "}\n"
+                "If no stage variables exist, rule_clusters may be empty.\n"
                 "Do not invent missing logic. Use Unknown when unclear."
             )
             obj = self.chat_json("Return JSON only.", f"{prompt}\n\n{json.dumps(payload)}", max_tokens=500)
@@ -349,15 +431,42 @@ class LineageAgent:
                 for k, v in cmap.items():
                     if str(k).strip() and str(v).strip():
                         s.llm_constraint_labels[str(k).strip()] = str(v).strip()
-            sql_sem = obj.get("sql_semantics", {})
-            if isinstance(sql_sem, dict):
-                setattr(s, "llm_sql_semantics", sql_sem)
             clusters = obj.get("rule_clusters", [])
             if isinstance(clusters, list):
                 setattr(s, "llm_rule_clusters", clusters[:8])
             lkt = str(obj.get("lookup_type", "")).strip()
             if lkt:
                 setattr(s, "llm_lookup_type", lkt)
+
+            # Dedicated SQL semantics pass only for SQL-bearing stages.
+            if has_sql:
+                sql_chunks = self._chunk_sql_by_sections(sql_text)
+                sql_payload = {
+                    "stage_name": s.name,
+                    "sql_chunks": sql_chunks,
+                    "join_tokens_detected": len(re.findall(r"(?is)\\b(?:left|right|full|inner|cross)?(?:\\s+outer)?\\s+join\\b|\\bjoin\\b", sql_text)),
+                }
+                sql_prompt = (
+                    "Analyze SQL semantics. Return strict JSON:\n"
+                    "{\n"
+                    '  "semantic_role": "extraction|enrichment|pivot|change_detection|aggregation|rule_evaluation|Unknown",\n'
+                    '  "estimated_join_complexity": "low|medium|high|Unknown",\n'
+                    '  "contains_row_expansion": true,\n'
+                    '  "contains_historical_comparison": true,\n'
+                    '  "contains_change_detection": true,\n'
+                    '  "contains_aggregation": true,\n'
+                    '  "contains_lookup_enrichment": true,\n'
+                    '  "sql_intent_summary": "short summary"\n'
+                    "}"
+                )
+                try:
+                    sql_obj = self.chat_json("Return JSON only.", f"{sql_prompt}\n\n{json.dumps(sql_payload)}", max_tokens=420)
+                    setattr(s, "llm_sql_semantics", sql_obj if isinstance(sql_obj, dict) else {})
+                except Exception:
+                    setattr(s, "llm_sql_semantics", {})
+            else:
+                setattr(s, "llm_sql_semantics", {})
+
             enrich_events.append(
                 {
                     "stage": s.name,
@@ -369,6 +478,7 @@ class LineageAgent:
                     "sql_semantics": getattr(s, "llm_sql_semantics", {}),
                     "rule_clusters": getattr(s, "llm_rule_clusters", []),
                     "lookup_type": getattr(s, "llm_lookup_type", ""),
+                    "stagevar_clusters_seed": sv_clusters,
                 }
             )
         state["enrichment_audit"] = enrich_events
@@ -377,17 +487,23 @@ class LineageAgent:
         stages: List[Stage] = state["stages"]
         links: List[Tuple[str, str, str]] = state["links"]
         payload = {
-            "stages": [{"name": s.name, "type": s.stage_type} for s in stages],
+            "stages": [{"name": s.name, "type": s.stage_type, "lookup_type": getattr(s, "llm_lookup_type", "")} for s in stages],
             "edges": [{"from": a, "to": b, "link": c} for a, b, c in links],
         }
         prompt = (
-            "Infer ETL job-level semantics from stage graph.\n"
+            "Infer ETL job-level semantics from stage graph topology and stage semantics.\n"
             "Return strict JSON:\n"
             "{\n"
-            '  "job_type": "short phrase",\n'
-            '  "primary_purpose": "short sentence",\n'
-            '  "key_logic_areas": ["up to 5 items"],\n'
-            '  "logical_subflows": [{"name":"...", "stages":["..."]}]\n'
+            '  "job_type": "specific short phrase",\n'
+            '  "primary_purpose": "specific sentence",\n'
+            '  "key_logic_areas": ["business logic area names"],\n'
+            '  "complexity_level": "Low|Medium|High",\n'
+            '  "has_historical_dependency": true,\n'
+            '  "has_row_expansion": true,\n'
+            '  "decision_depth": "Shallow|Moderate|Deep",\n'
+            '  "logical_subflows": [{"name":"...", "stages":["..."]}],\n'
+            '  "primary_pipeline": ["ordered stage names"],\n'
+            '  "secondary_pipeline": ["ordered stage names"]\n'
             "}\n"
             "Do not invent stage names."
         )
@@ -397,7 +513,13 @@ class LineageAgent:
                 "job_type": str(obj.get("job_type", "Unknown")).strip() or "Unknown",
                 "primary_purpose": str(obj.get("primary_purpose", "Unknown")).strip() or "Unknown",
                 "key_logic_areas": obj.get("key_logic_areas", []) if isinstance(obj.get("key_logic_areas", []), list) else [],
+                "complexity_level": str(obj.get("complexity_level", "Unknown")).strip() or "Unknown",
+                "has_historical_dependency": bool(obj.get("has_historical_dependency", False)),
+                "has_row_expansion": bool(obj.get("has_row_expansion", False)),
+                "decision_depth": str(obj.get("decision_depth", "Unknown")).strip() or "Unknown",
                 "logical_subflows": obj.get("logical_subflows", []) if isinstance(obj.get("logical_subflows", []), list) else [],
+                "primary_pipeline": obj.get("primary_pipeline", []) if isinstance(obj.get("primary_pipeline", []), list) else [],
+                "secondary_pipeline": obj.get("secondary_pipeline", []) if isinstance(obj.get("secondary_pipeline", []), list) else [],
             }
         except Exception:
             # Deterministic fallback summary if LLM global semantics fails.
@@ -405,7 +527,13 @@ class LineageAgent:
                 "job_type": "ETL Lineage Pipeline",
                 "primary_purpose": "Transform and route records across staged datasets",
                 "key_logic_areas": [],
+                "complexity_level": "Unknown",
+                "has_historical_dependency": False,
+                "has_row_expansion": False,
+                "decision_depth": "Unknown",
                 "logical_subflows": [],
+                "primary_pipeline": [],
+                "secondary_pipeline": [],
             }
 
     def validate(self, state: Dict[str, Any]) -> None:
@@ -518,13 +646,16 @@ class LineageAgent:
                 label_lines = [s.name]
                 sql_sem = getattr(s, "llm_sql_semantics", {})
                 if isinstance(sql_sem, dict):
-                    role = str(sql_sem.get("semantic_role", "")).strip()
+                    role = str(sql_sem.get("semantic_role", "")).strip() if bool(getattr(s, "has_sql", False)) else ""
                     if role and role.lower() != "unknown":
                         label_lines.append(f"- SQL role: {role}")
-                    if bool(sql_sem.get("is_row_expansion_present")):
+                    if bool(sql_sem.get("contains_row_expansion")):
                         label_lines.append("- Row expansion detected")
-                    if bool(sql_sem.get("is_difference_detection_present")):
+                    if bool(sql_sem.get("contains_change_detection")):
                         label_lines.append("- Difference detection present")
+                    intent = str(sql_sem.get("sql_intent_summary", "")).strip()
+                    if intent and intent.lower() != "unknown":
+                        label_lines.append(f"- {intent}")
                 if ann:
                     label_lines.append(f"- {ann}")
                 for r in rules:
@@ -597,33 +728,28 @@ class LineageAgent:
                         lines.append(f'{did} -> {node_ids[t]} [label="Route when true", color=blue];')
 
         source_count = sum(1 for s in stages if stage_layer[s.name] == "source")
-        join_count = detected_join_count if isinstance(detected_join_count, int) else sum(len(s.join_blocks) for s in stages)
-        cols = sum(sum(1 for t in s.transformations if t.target_col != "Unknown") for s in stages)
-        # Semantic business-rule counting: prefer clustered rule groups over raw transformed-column counts.
-        rules_count = 0
-        for s in stages:
-            clusters = getattr(s, "llm_rule_clusters", [])
-            if isinstance(clusters, list) and clusters:
-                rules_count += len(clusters)
-            elif s.constraints:
-                rules_count += len(s.constraints)
-        if rules_count == 0:
-            rules_count = sum(len(s.constraints) for s in stages)
         decision_count = sum(len(s.constraints) for s in stages)
         js = job_semantics or {}
         job_type = str(js.get("job_type", "Unknown"))
         purpose = str(js.get("primary_purpose", "Unknown"))
         logic_areas = js.get("key_logic_areas", []) if isinstance(js.get("key_logic_areas", []), list) else []
+        complexity_level = str(js.get("complexity_level", "Unknown"))
+        hist_dep = "Yes" if bool(js.get("has_historical_dependency", False)) else "No"
+        row_exp = "Yes" if bool(js.get("has_row_expansion", False)) else "No"
+        decision_depth = str(js.get("decision_depth", "Unknown"))
         subflows = js.get("logical_subflows", []) if isinstance(js.get("logical_subflows", []), list) else []
+        primary_pipeline = js.get("primary_pipeline", []) if isinstance(js.get("primary_pipeline", []), list) else []
+        secondary_pipeline = js.get("secondary_pipeline", []) if isinstance(js.get("secondary_pipeline", []), list) else []
         summary = (
             "Semantic Summary:\n"
             f"- Job Type: {job_type}\n"
             f"- Purpose: {purpose}\n"
-            f"- {source_count} Source Stages\n"
-            f"- {join_count} Joins\n"
-            f"- {cols} Columns Processed\n"
-            f"- {rules_count} Business Rules Applied\n"
-            f"- {decision_count} Constraint Routes"
+            f"- Complexity Level: {complexity_level}\n"
+            f"- Historical Dependency: {hist_dep}\n"
+            f"- Row Expansion: {row_exp}\n"
+            f"- Decision Depth: {decision_depth}\n"
+            f"- Source Stages: {source_count}\n"
+            f"- Constraint Routes: {decision_count}"
         )
         if logic_areas:
             summary += "\n- Logic Areas: " + ", ".join(str(x) for x in logic_areas[:4])
@@ -633,6 +759,13 @@ class LineageAgent:
                 f"- {str(sf.get('name', 'Flow'))}" for sf in subflows[:3] if isinstance(sf, dict)
             )
             lines.append(f'Note2 [shape=plaintext, label="{_dot_escape(sub_txt)}", fontsize=8, fillcolor="white"];')
+        if primary_pipeline or secondary_pipeline:
+            pipe_txt = "Pipelines:\n"
+            if primary_pipeline:
+                pipe_txt += "- Primary: " + " -> ".join(str(x) for x in primary_pipeline[:8]) + "\n"
+            if secondary_pipeline:
+                pipe_txt += "- Secondary: " + " -> ".join(str(x) for x in secondary_pipeline[:8])
+            lines.append(f'Note3 [shape=plaintext, label="{_dot_escape(pipe_txt.strip())}", fontsize=8, fillcolor="white"];')
         lines.append("}")
         return "\n".join(lines)
 
