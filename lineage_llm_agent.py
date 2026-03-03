@@ -12,15 +12,48 @@ from agent import (
     INPUT_FOLDER,
     OUTPUT_FOLDER,
     Stage,
-    build_detailed_dot,
     build_global_links,
-    build_high_level_dot,
     compute_complexity,
     detect_undefined_references,
     longest_chain,
     parse_stages,
     sanitize_id,
 )
+
+
+def _load_local_env() -> None:
+    # Load .env from current working directory or script directory.
+    candidates = [
+        os.path.join(os.getcwd(), ".env"),
+        os.path.join(os.path.dirname(__file__), ".env"),
+    ]
+    seen = set()
+    for env_path in candidates:
+        norm = os.path.abspath(env_path)
+        if norm in seen:
+            continue
+        seen.add(norm)
+        if not os.path.isfile(norm):
+            continue
+        try:
+            with open(norm, "r", encoding="utf-8") as f:
+                for raw in f:
+                    line = raw.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip()
+                    if (
+                        len(value) >= 2
+                        and ((value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"))
+                    ):
+                        value = value[1:-1]
+                    if key:
+                        os.environ.setdefault(key, value)
+        except Exception:
+            # Non-fatal: agent still validates required variables explicitly.
+            continue
 
 
 def _extract_json_object(text: str) -> Dict[str, Any]:
@@ -36,6 +69,10 @@ def _extract_json_object(text: str) -> Dict[str, Any]:
 
 def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
+
+
+def _dot_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
 class LineageAgent:
@@ -61,6 +98,7 @@ class LineageAgent:
 
     @staticmethod
     def _init_client() -> AzureOpenAI:
+        _load_local_env()
         api_key = os.getenv("AZURE_OPENAI_API_KEY", "").strip()
         api_version = os.getenv("AZURE_OPENAI_API_VERSION", "").strip()
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "").strip()
@@ -295,6 +333,187 @@ class LineageAgent:
         if complexity_score > 150:
             state["final_output"] = "Job too complex for single detailed diagram. Recommend stage-wise lineage generation."
 
+    def _layer_for_stage(self, stage: Stage, has_upstream: bool, has_downstream: bool, include_lookup: bool) -> str:
+        st = stage.stage_type.lower()
+        if include_lookup and "hashedfile" in st:
+            return "lookup"
+        if "transformer" in st:
+            return "transformation"
+        if "oracleconnector" in st:
+            if not has_upstream:
+                return "source"
+            if has_downstream:
+                return "transformation"
+            return "target"
+        if "seqfile" in st:
+            return "target"
+        if not has_upstream:
+            return "source"
+        if not has_downstream:
+            return "target"
+        return "transformation"
+
+    def _build_arch_dot(
+        self,
+        graph_name: str,
+        stages: List[Stage],
+        links: List[Tuple[str, str, str]],
+        include_lookup: bool,
+        include_decisions: bool,
+    ) -> str:
+        node_ids = {s.name: sanitize_id(s.name, f"stage_{i}") for i, s in enumerate(stages, 1)}
+        downstream = {s.name: 0 for s in stages}
+        upstream = {s.name: 0 for s in stages}
+        for src, dst, _ in links:
+            if src in downstream:
+                downstream[src] += 1
+            if dst in upstream:
+                upstream[dst] += 1
+
+        stage_layer = {
+            s.name: self._layer_for_stage(
+                s,
+                has_upstream=upstream.get(s.name, 0) > 0,
+                has_downstream=downstream.get(s.name, 0) > 0,
+                include_lookup=include_lookup,
+            )
+            for s in stages
+        }
+
+        lines = [
+            f'digraph {sanitize_id(graph_name, "lineage_graph")} {{',
+            "rankdir=LR;",
+            'fontsize=10;',
+            'fontname="Arial";',
+            'node [fontname="Arial", fontsize=10, style=filled];',
+            'edge [fontname="Arial", fontsize=8];',
+            "",
+            "subgraph cluster_source {",
+            'label="Source Layer";',
+            "style=rounded;",
+            "color=grey;",
+        ]
+        for s in stages:
+            if stage_layer[s.name] == "source":
+                note = getattr(s, "llm_annotation", "") or ""
+                lbl = s.name if not note else f"{s.name}\n({note})"
+                lines.append(f'{node_ids[s.name]} [label="{_dot_escape(lbl)}", shape=cylinder, fillcolor="#FFD1DC"];')
+        lines.append("}")
+
+        if include_lookup:
+            lines.extend(
+                [
+                    "",
+                    "subgraph cluster_lookup {",
+                    'label="Lookup / Hashed Layer";',
+                    "style=rounded;",
+                    "color=blue;",
+                ]
+            )
+            for s in stages:
+                if stage_layer[s.name] == "lookup":
+                    lines.append(f'{node_ids[s.name]} [label="{_dot_escape(s.name)}", shape=cylinder, fillcolor="#E1F5FE"];')
+            lines.append("}")
+
+        lines.extend(
+            [
+                "",
+                "subgraph cluster_processing {",
+                'label="Transformation Layer";',
+                "style=rounded;",
+                "color=black;",
+            ]
+        )
+        for s in stages:
+            if stage_layer[s.name] == "transformation":
+                ann = getattr(s, "llm_annotation", "") or ""
+                rules = getattr(s, "llm_rules", [])[:2]
+                label_lines = [s.name]
+                if ann:
+                    label_lines.append(f"- {ann}")
+                for r in rules:
+                    label_lines.append(f"- {r}")
+                if s.constraints:
+                    label_lines.append(f"Constraints: {len(s.constraints)}")
+                if s.stage_vars_defined:
+                    label_lines.append(f"Stage Variables: {len(s.stage_vars_defined)}")
+                lines.append(
+                    f'{node_ids[s.name]} [label="{_dot_escape(chr(10).join(label_lines))}", shape=box, fillcolor="#FFF9C4"];'
+                )
+        lines.append("}")
+
+        lines.extend(
+            [
+                "",
+                "subgraph cluster_target {",
+                'label="Target Layer";',
+                "style=rounded;",
+                "color=green;",
+            ]
+        )
+        for s in stages:
+            if stage_layer[s.name] == "target":
+                st = s.stage_type.lower()
+                shape = "note" if ("seqfile" in st or "exception" in s.name.lower()) else "cylinder"
+                lines.append(f'{node_ids[s.name]} [label="{_dot_escape(s.name)}", shape={shape}, fillcolor="#C8E6C9"];')
+        lines.append("}")
+
+        # Core lineage edges
+        seen = set()
+        for src, dst, ds in links:
+            src_id = node_ids.get(src, "Unknown")
+            dst_id = node_ids.get(dst)
+            if not dst_id:
+                continue
+            if src_id == "Unknown":
+                lines.append('Unknown [label="Unknown", shape=cylinder, fillcolor="#F5B7B1"];')
+            key = (src_id, dst_id, ds)
+            if key in seen:
+                continue
+            seen.add(key)
+            lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+
+        if include_decisions:
+            input_link_to_stage: Dict[str, List[str]] = {}
+            for s in stages:
+                for _, _, link_name in s.inputs:
+                    if link_name:
+                        input_link_to_stage.setdefault(link_name, []).append(s.name)
+
+            for s in stages:
+                if not s.constraints:
+                    continue
+                sid = node_ids[s.name]
+                labels = getattr(s, "llm_constraint_labels", {})
+                for idx, c in enumerate(s.constraints, 1):
+                    # Route constraints to known output-link consumers.
+                    targets = input_link_to_stage.get(c.name, [])
+                    if not targets:
+                        continue
+                    label = labels.get(c.expression) or ("Reporting Flag = Y?" if "svreportingflag" in c.expression.lower() else c.expression[:45] + ("..." if len(c.expression) > 45 else ""))
+                    did = f"{sid}_decision_{idx}"
+                    lines.append(f'{did} [shape=diamond, label="{_dot_escape(label)}", fillcolor="#FADBD8"];')
+                    lines.append(f'{sid} -> {did} [label="Constraint"];')
+                    for t in targets:
+                        lines.append(f'{did} -> {node_ids[t]} [label="Route when true", color=blue];')
+
+        source_count = sum(1 for s in stages if stage_layer[s.name] == "source")
+        join_count = sum(len(s.join_blocks) for s in stages)
+        cols = sum(sum(1 for t in s.transformations if t.target_col != "Unknown") for s in stages)
+        rules_count = sum(sum(1 for t in s.transformations if t.is_modified) for s in stages)
+        decision_count = sum(len(s.constraints) for s in stages)
+        summary = (
+            "Job Summary:\n"
+            f"- {source_count} Source Stages\n"
+            f"- {join_count} Joins\n"
+            f"- {cols} Columns Processed\n"
+            f"- {rules_count} Business Rules Applied\n"
+            f"- {decision_count} Constraint Routes"
+        )
+        lines.append(f'Note1 [shape=plaintext, label="{_dot_escape(summary)}", fontsize=8, fillcolor="white"];')
+        lines.append("}")
+        return "\n".join(lines)
+
     def generate_diagram(self, state: Dict[str, Any]) -> None:
         if state.get("final_output"):
             return
@@ -302,10 +521,11 @@ class LineageAgent:
         links = state["links"]
         graph_name = sanitize_id(state["file_stem"], "lineage")
         chain_len = longest_chain([(a, b) for a, b, _ in links])
-        rankdir = "TB" if (len(stages) > 10 or chain_len > 8) else "LR"
+        _rankdir = "TB" if (len(stages) > 10 or chain_len > 8) else "LR"
 
-        high = build_high_level_dot(graph_name, stages, rankdir, links)
-        detailed = build_detailed_dot(graph_name, stages, rankdir, links, state.get("transformed_columns", 0))
+        # Architecture-first rendering specialized for large DataStage jobs.
+        high = self._build_arch_dot(graph_name, stages, links, include_lookup=False, include_decisions=False)
+        detailed = self._build_arch_dot(graph_name + "_detailed", stages, links, include_lookup=True, include_decisions=True)
         state["high_dot"] = high
         state["detailed_dot"] = detailed
         state["final_output"] = "\n".join(
