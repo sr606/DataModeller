@@ -405,28 +405,33 @@ class LineageAgent:
                 "stagevar_clusters_seed": sv_clusters,
             }
             prompt = (
-                "Summarize stage semantics for lineage with structural reasoning.\n"
+                "Analyze this ETL stage.\n"
                 "Return strict JSON:\n"
                 "{\n"
-                '  "annotation": "short role",\n'
+                '  "stage_role": "source | transformation | lookup | target | Unknown",\n'
+                '  "stage_summary": "short description",\n'
+                '  "decision_labels": {"constraint_expression":"human readable condition"},\n'
+                '  "is_exception_routing": true,\n'
+                '  "is_lookup": true,\n'
                 '  "rules": ["up to 3 business rules"],\n'
-                '  "constraint_labels": {"exact_constraint_expression": "short decision label"},\n'
                 '  "rule_clusters": [\n'
                 '    {"rule_name":"...", "category":"...", "related_stagevars":["..."], "description":"..."}\n'
                 "  ],\n"
                 '  "lookup_type": "dimension|rule_table|fact_reference|temp_stage|Unknown"\n'
                 "}\n"
                 "If no stage variables exist, rule_clusters may be empty.\n"
-                "Do not invent missing logic. Use Unknown when unclear."
+                "Do not invent stages. Base the answer only on the provided stage definition. Use Unknown when unclear."
             )
             obj = self.chat_json("Return JSON only.", f"{prompt}\n\n{json.dumps(payload)}", max_tokens=500)
-            ann = str(obj.get("annotation", "")).strip()
+            ann = str(obj.get("stage_summary", "")).strip() or str(obj.get("annotation", "")).strip()
             if ann and ann.lower() != "unknown":
                 s.llm_annotation = ann
             rules = obj.get("rules", [])
             if isinstance(rules, list):
                 s.llm_rules = [str(x).strip() for x in rules if str(x).strip() and str(x).strip().lower() != "unknown"][:3]
-            cmap = obj.get("constraint_labels", {})
+            cmap = obj.get("decision_labels", {})
+            if not isinstance(cmap, dict):
+                cmap = obj.get("constraint_labels", {})
             if isinstance(cmap, dict):
                 for k, v in cmap.items():
                     if str(k).strip() and str(v).strip():
@@ -437,6 +442,9 @@ class LineageAgent:
             lkt = str(obj.get("lookup_type", "")).strip()
             if lkt:
                 setattr(s, "llm_lookup_type", lkt)
+            elif bool(obj.get("is_lookup", False)):
+                setattr(s, "llm_lookup_type", "lookup")
+            setattr(s, "llm_is_exception_routing", bool(obj.get("is_exception_routing", False)))
 
             # Dedicated SQL semantics pass only for SQL-bearing stages.
             if has_sql:
@@ -663,6 +671,25 @@ class LineageAgent:
                         declared_nodes.add(nid)
             lines.append("}")
 
+            # Keep lookup nodes visually near consuming transformers.
+            lookup_to_consumers: Dict[str, List[str]] = {}
+            for src, dst, _ in canon_links:
+                if src in storage_keys and dst in stage_layer and stage_layer.get(dst) == "transformation":
+                    lookup_to_consumers.setdefault(dst, []).append(src)
+            for idx, (consumer, lookups) in enumerate(lookup_to_consumers.items(), 1):
+                uniq_lk = sorted(set(lookups))
+                if not uniq_lk:
+                    continue
+                lines.append(f"subgraph cluster_lookup_near_{idx} {{")
+                lines.append("rank=same;")
+                lines.append("style=invis;")
+                for lk in uniq_lk[:4]:
+                    if lk in node_ids:
+                        lines.append(f"{node_ids[lk]};")
+                if consumer in node_ids:
+                    lines.append(f"{node_ids[consumer]};")
+                lines.append("}")
+
         lines.extend(
             [
                 "",
@@ -743,7 +770,11 @@ class LineageAgent:
             if key in seen:
                 continue
             seen.add(key)
-            lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+            # Lookup edges are always rendered from store to consuming transformer.
+            if include_lookup and src in storage_keys and stage_layer.get(dst) == "transformation":
+                lines.append(f'{src_id} -> {dst_id} [label="Lookup", style=dashed];')
+            else:
+                lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
 
         if include_decisions:
             input_link_to_stage: Dict[str, List[str]] = {}
@@ -757,6 +788,11 @@ class LineageAgent:
                     continue
                 sid = node_ids[s.name]
                 labels = getattr(s, "llm_constraint_labels", {})
+                output_link_targets: Dict[str, List[str]] = {}
+                for link_name in s.output_links:
+                    targets = [t for t in input_link_to_stage.get(link_name, []) if t != s.name]
+                    if targets:
+                        output_link_targets[link_name] = targets
                 for idx, c in enumerate(s.constraints, 1):
                     # Route constraints to known output-link consumers.
                     targets = [t for t in input_link_to_stage.get(c.name, []) if t != s.name]
@@ -767,7 +803,17 @@ class LineageAgent:
                     lines.append(f'{did} [shape=diamond, label="{_dot_escape(label)}", fillcolor="#FADBD8"];')
                     lines.append(f'{sid} -> {did} [label="Constraint"];')
                     for t in targets:
-                        lines.append(f'{did} -> {node_ids[t]} [label="Route when true", color=blue];')
+                        lines.append(f'{did} -> {node_ids[t]} [label="Valid", color=blue];')
+                    # If secondary outputs exist, route them from decision as Exception/Else.
+                    secondary = []
+                    for lk, tgts in output_link_targets.items():
+                        if lk == c.name:
+                            continue
+                        for t in tgts:
+                            if t not in targets and t not in secondary:
+                                secondary.append(t)
+                    for t in secondary[:2]:
+                        lines.append(f'{did} -> {node_ids[t]} [label="Exception", color=red, fontcolor=red];')
 
         source_count = sum(1 for s in process_stages if stage_layer.get(s.name) == "source")
         decision_count = sum(len(s.constraints) for s in process_stages)
@@ -789,32 +835,8 @@ class LineageAgent:
         subflows = js.get("logical_subflows", []) if isinstance(js.get("logical_subflows", []), list) else []
         primary_pipeline = js.get("primary_pipeline", []) if isinstance(js.get("primary_pipeline", []), list) else []
         secondary_pipeline = js.get("secondary_pipeline", []) if isinstance(js.get("secondary_pipeline", []), list) else []
-        summary = (
-            "Semantic Summary:\n"
-            f"- Job Type: {job_type}\n"
-            f"- Purpose: {purpose}\n"
-            f"- Complexity Level: {complexity_level}\n"
-            f"- Historical Dependency: {hist_dep}\n"
-            f"- Row Expansion: {row_exp}\n"
-            f"- Decision Depth: {decision_depth}\n"
-            f"- Source Stages: {source_count}\n"
-            f"- Constraint Routes: {decision_count}"
-        )
-        if logic_areas:
-            summary += "\n- Logic Areas: " + ", ".join(str(x) for x in logic_areas[:4])
+        summary = f"Job Type: {job_type}"
         lines.append(f'Note1 [shape=plaintext, label="{_dot_escape(summary)}", fontsize=8, fillcolor="white"];')
-        if subflows:
-            sub_txt = "Subflows:\n" + "\n".join(
-                f"- {str(sf.get('name', 'Flow'))}" for sf in subflows[:3] if isinstance(sf, dict)
-            )
-            lines.append(f'Note2 [shape=plaintext, label="{_dot_escape(sub_txt)}", fontsize=8, fillcolor="white"];')
-        if primary_pipeline or secondary_pipeline:
-            pipe_txt = "Pipelines:\n"
-            if primary_pipeline:
-                pipe_txt += "- Primary: " + " -> ".join(str(x) for x in primary_pipeline[:8]) + "\n"
-            if secondary_pipeline:
-                pipe_txt += "- Secondary: " + " -> ".join(str(x) for x in secondary_pipeline[:8])
-            lines.append(f'Note3 [shape=plaintext, label="{_dot_escape(pipe_txt.strip())}", fontsize=8, fillcolor="white"];')
         lines.append("}")
         return "\n".join(lines)
 
@@ -833,7 +855,7 @@ class LineageAgent:
             stages,
             links,
             include_lookup=False,
-            include_decisions=False,
+            include_decisions=True,
             job_semantics=state.get("job_semantics", {}),
             detected_join_count=state.get("detected_join_count"),
         )
