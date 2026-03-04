@@ -581,7 +581,14 @@ class LineageAgent:
         include_decisions: bool,
         job_semantics: Dict[str, Any] | None = None,
         detected_join_count: int | None = None,
+        profile: Dict[str, bool] | None = None,
     ) -> str:
+        profile = profile or {}
+        verbose_labels = bool(profile.get("verbose_labels", True))
+        show_edge_labels = bool(profile.get("show_edge_labels", True))
+        show_job_type_note = bool(profile.get("show_job_type_note", True))
+        show_decisions = bool(profile.get("show_decisions", include_decisions))
+
         # Canonicalize stage names to eliminate duplicate nodes caused by case/spacing variants.
         by_key: Dict[str, Stage] = {}
         for s in stages:
@@ -644,7 +651,7 @@ class LineageAgent:
         for s in process_stages:
             if stage_layer.get(s.name) == "source":
                 note = getattr(s, "llm_annotation", "") or ""
-                lbl = s.name if not note else f"{s.name}\n({note})"
+                lbl = s.name if (not verbose_labels or not note) else f"{s.name}\n({note})"
                 nid = node_ids[s.name]
                 if nid not in declared_nodes:
                     lines.append(f'{nid} [label="{_dot_escape(lbl)}", shape=cylinder, fillcolor="#FFD1DC"];')
@@ -700,29 +707,30 @@ class LineageAgent:
                 ann = getattr(s, "llm_annotation", "") or ""
                 rules = getattr(s, "llm_rules", [])[:2]
                 label_lines = [s.name]
-                sql_sem = getattr(s, "llm_sql_semantics", {})
-                if isinstance(sql_sem, dict):
-                    role = str(sql_sem.get("semantic_role", "")).strip() if bool(getattr(s, "has_sql", False)) else ""
-                    if role and role.lower() != "unknown":
-                        label_lines.append(f"- SQL role: {role}")
-                    if bool(sql_sem.get("contains_row_expansion")):
-                        label_lines.append("- Row expansion detected")
-                    if bool(sql_sem.get("contains_change_detection")):
-                        label_lines.append("- Difference detection present")
-                    intent = str(sql_sem.get("sql_intent_summary", "")).strip()
-                    if intent and intent.lower() != "unknown":
-                        label_lines.append(f"- {intent}")
-                if ann:
-                    label_lines.append(f"- {ann}")
-                for r in rules:
-                    label_lines.append(f"- {r}")
-                clusters = getattr(s, "llm_rule_clusters", [])
-                if isinstance(clusters, list) and clusters:
-                    label_lines.append(f"Rule Clusters: {len(clusters)}")
-                if s.constraints:
-                    label_lines.append(f"Constraints: {len(s.constraints)}")
-                if s.stage_vars_defined:
-                    label_lines.append(f"Stage Variables: {len(s.stage_vars_defined)}")
+                if verbose_labels:
+                    sql_sem = getattr(s, "llm_sql_semantics", {})
+                    if isinstance(sql_sem, dict):
+                        role = str(sql_sem.get("semantic_role", "")).strip() if bool(getattr(s, "has_sql", False)) else ""
+                        if role and role.lower() != "unknown":
+                            label_lines.append(f"- SQL role: {role}")
+                        if bool(sql_sem.get("contains_row_expansion")):
+                            label_lines.append("- Row expansion detected")
+                        if bool(sql_sem.get("contains_change_detection")):
+                            label_lines.append("- Difference detection present")
+                        intent = str(sql_sem.get("sql_intent_summary", "")).strip()
+                        if intent and intent.lower() != "unknown":
+                            label_lines.append(f"- {intent}")
+                    if ann:
+                        label_lines.append(f"- {ann}")
+                    for r in rules:
+                        label_lines.append(f"- {r}")
+                    clusters = getattr(s, "llm_rule_clusters", [])
+                    if isinstance(clusters, list) and clusters:
+                        label_lines.append(f"Rule Clusters: {len(clusters)}")
+                    if s.constraints:
+                        label_lines.append(f"Constraints: {len(s.constraints)}")
+                    if s.stage_vars_defined:
+                        label_lines.append(f"Stage Variables: {len(s.stage_vars_defined)}")
                 nid = node_ids[s.name]
                 if nid not in declared_nodes:
                     lines.append(
@@ -790,11 +798,17 @@ class LineageAgent:
             seen.add(key)
             # Lookup edges are always rendered from store to consuming transformer.
             if include_lookup and src in storage_keys and stage_layer.get(dst) == "transformation":
-                lines.append(f'{src_id} -> {dst_id} [label="Lookup"];')
+                if show_edge_labels:
+                    lines.append(f'{src_id} -> {dst_id} [label="Lookup"];')
+                else:
+                    lines.append(f"{src_id} -> {dst_id};")
             else:
-                lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+                if show_edge_labels:
+                    lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+                else:
+                    lines.append(f"{src_id} -> {dst_id};")
 
-        if include_decisions:
+        if include_decisions and show_decisions:
             input_link_to_stage: Dict[str, List[str]] = {}
             for s in process_stages:
                 for _, _, link_name in s.inputs:
@@ -853,8 +867,9 @@ class LineageAgent:
         subflows = js.get("logical_subflows", []) if isinstance(js.get("logical_subflows", []), list) else []
         primary_pipeline = js.get("primary_pipeline", []) if isinstance(js.get("primary_pipeline", []), list) else []
         secondary_pipeline = js.get("secondary_pipeline", []) if isinstance(js.get("secondary_pipeline", []), list) else []
-        summary = f"Job Type: {job_type}"
-        lines.append(f'Note1 [shape=plaintext, label="{_dot_escape(summary)}", fontsize=8, fillcolor="white"];')
+        if show_job_type_note:
+            summary = f"Job Type: {job_type}"
+            lines.append(f'Note1 [shape=plaintext, label="{_dot_escape(summary)}", fontsize=8, fillcolor="white"];')
         lines.append("}")
         return "\n".join(lines)
 
@@ -873,9 +888,15 @@ class LineageAgent:
             stages,
             links,
             include_lookup=False,
-            include_decisions=True,
+            include_decisions=False,
             job_semantics=state.get("job_semantics", {}),
             detected_join_count=state.get("detected_join_count"),
+            profile={
+                "verbose_labels": False,
+                "show_edge_labels": False,
+                "show_job_type_note": False,
+                "show_decisions": False,
+            },
         )
         detailed = self._build_arch_dot(
             graph_name + "_detailed",
@@ -885,6 +906,12 @@ class LineageAgent:
             include_decisions=True,
             job_semantics=state.get("job_semantics", {}),
             detected_join_count=state.get("detected_join_count"),
+            profile={
+                "verbose_labels": True,
+                "show_edge_labels": True,
+                "show_job_type_note": True,
+                "show_decisions": True,
+            },
         )
         state["high_dot"] = high
         state["detailed_dot"] = detailed
