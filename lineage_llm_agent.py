@@ -655,10 +655,7 @@ class LineageAgent:
             lines.extend(
                 [
                     "",
-                    "subgraph cluster_lookup {",
-                    'label="Lookup / Hashed Layer";',
-                    "style=rounded;",
-                    "color=blue;",
+                    "// Lookup / Hashed Nodes",
                 ]
             )
             for s in uniq_stages:
@@ -669,7 +666,6 @@ class LineageAgent:
                     if nid not in declared_nodes:
                         lines.append(f'{nid} [label="{_dot_escape(lbl)}", shape=cylinder, fillcolor="#E1F5FE"];')
                         declared_nodes.add(nid)
-            lines.append("}")
 
             # Keep lookup nodes visually near consuming transformers.
             lookup_to_consumers: Dict[str, List[str]] = {}
@@ -756,9 +752,31 @@ class LineageAgent:
 
         # Core lineage edges
         seen = set()
+        decision_routed_pairs = set()
+        if include_decisions:
+            input_link_to_stage_for_skip: Dict[str, List[str]] = {}
+            for s in process_stages:
+                for _, _, link_name in s.inputs:
+                    if link_name:
+                        input_link_to_stage_for_skip.setdefault(link_name, []).append(canon(s.name))
+            for s in process_stages:
+                if not s.constraints:
+                    continue
+                for c in s.constraints:
+                    for t in input_link_to_stage_for_skip.get(c.name, []):
+                        if t != s.name:
+                            decision_routed_pairs.add((s.name, t))
+                # also skip direct edges to secondary routed outputs when multiple outputs exist
+                if len(s.output_links) > 1:
+                    for lk in s.output_links:
+                        for t in input_link_to_stage_for_skip.get(lk, []):
+                            if t != s.name:
+                                decision_routed_pairs.add((s.name, t))
         for src, dst, ds in canon_links:
             # In high-level view, collapse storage nodes to reduce clutter.
             if not include_lookup and (src in storage_keys or dst in storage_keys):
+                continue
+            if include_decisions and (src, dst) in decision_routed_pairs:
                 continue
             src_id = node_ids.get(src, "Unknown")
             dst_id = node_ids.get(dst)
@@ -772,7 +790,7 @@ class LineageAgent:
             seen.add(key)
             # Lookup edges are always rendered from store to consuming transformer.
             if include_lookup and src in storage_keys and stage_layer.get(dst) == "transformation":
-                lines.append(f'{src_id} -> {dst_id} [label="Lookup", style=dashed];')
+                lines.append(f'{src_id} -> {dst_id} [label="Lookup"];')
             else:
                 lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
 
