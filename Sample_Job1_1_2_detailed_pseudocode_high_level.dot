@@ -9,14 +9,14 @@ subgraph cluster_source {
 label="Source Layer";
 style=rounded;
 color=grey;
-ORA_Ext_Vehicle_Off_Road_Data [label="ORA_Ext_Vehicle_Off_Road_Data\n(Extracts data from an Oracle database table related to vehicle off-road data.)", shape=cylinder, fillcolor="#FFD1DC"];
+ORA_Ext_Vehicle_Off_Road_Data [label="ORA_Ext_Vehicle_Off_Road_Data", shape=cylinder, fillcolor="#FFD1DC"];
 }
 
 subgraph cluster_processing {
 label="Transformation Layer";
 style=rounded;
 color=black;
-Tfm_LoadRecords [label="Tfm_LoadRecords\n- Transforms and loads vehicle off-road data with conditional logic and lookup.\n- If VEHICLE_SK is -99, use lookup table for VEHICLE_SK and VARIANT_SK.\n- If SUPP_SK is -99, set DESCRIPTION to 'Unknown'.\nRule Clusters: 3\nConstraints: 1\nStage Variables: 1", shape=box, fillcolor="#FFF9C4"];
+Tfm_LoadRecords [label="Tfm_LoadRecords", shape=box, fillcolor="#FFF9C4"];
 }
 
 subgraph cluster_target {
@@ -26,10 +26,6 @@ color=green;
 Ora_StgVehicleOffRoad [label="Ora_StgVehicleOffRoad", shape=cylinder, fillcolor="#C8E6C9"];
 Supp_VOR_Exception [label="Supp_VOR_Exception", shape=note, fillcolor="#C8E6C9"];
 }
-ORA_Ext_Vehicle_Off_Road_Data -> Tfm_LoadRecords [label="ORA_Ext_Vehicle_Off_Road_Data"];
-Tfm_LoadRecords -> Supp_VOR_Exception [label="Tfm_LoadRecords"];
-Tfm_LoadRecords_decision_1 [shape=diamond, label="svException=-1", fillcolor="#FADBD8"];
-Tfm_LoadRecords -> Tfm_LoadRecords_decision_1 [label="Constraint"];
-Tfm_LoadRecords_decision_1 -> Supp_VOR_Exception [label="Valid", color=blue];
-Note1 [shape=plaintext, label="Job Type: Data Transformation and Loading", fontsize=8, fillcolor="white"];
+ORA_Ext_Vehicle_Off_Road_Data -> Tfm_LoadRecords;
+Tfm_LoadRecords -> Supp_VOR_Exception;
 }

@@ -12,13 +12,9 @@ color=grey;
 ORA_Ext_Vehicle_Off_Road_Data [label="ORA_Ext_Vehicle_Off_Road_Data\n(Extracts data from an Oracle database table related to vehicle off-road data.)", shape=cylinder, fillcolor="#FFD1DC"];
 }
 
-subgraph cluster_lookup {
-label="Lookup / Hashed Layer";
-style=rounded;
-color=blue;
+// Lookup / Hashed Nodes
 HF_FACT_VOR_DATA [label="HF_FACT_VOR_DATA", shape=cylinder, fillcolor="#E1F5FE"];
 HF_SMR_VEHICLE_DIM [label="HF_SMR_VEHICLE_DIM", shape=cylinder, fillcolor="#E1F5FE"];
-}
 subgraph cluster_lookup_near_1 {
 rank=same;
 style=invis;
@@ -30,7 +26,7 @@ subgraph cluster_processing {
 label="Transformation Layer";
 style=rounded;
 color=black;
-Tfm_LoadRecords [label="Tfm_LoadRecords\n- Transforms and loads vehicle off-road data with conditional logic and lookup.\n- If VEHICLE_SK is -99, use lookup table for VEHICLE_SK and VARIANT_SK.\n- If SUPP_SK is -99, set DESCRIPTION to 'Unknown'.\nRule Clusters: 3\nConstraints: 1\nStage Variables: 1", shape=box, fillcolor="#FFF9C4"];
+Tfm_LoadRecords [label="Tfm_LoadRecords\n- Transforms data from input links and applies conditional logic for certain fields.\n- If VEHICLE_SK is -99, use lookup table for VEHICLE_SK and VARIANT_SK\n- If SUPP_SK is -99, set DESCRIPTION to 'Unknown'\nRule Clusters: 3\nConstraints: 1\nStage Variables: 1", shape=box, fillcolor="#FFF9C4"];
 }
 
 subgraph cluster_target {
@@ -43,8 +39,7 @@ Supp_VOR_Exception [label="Supp_VOR_Exception", shape=note, fillcolor="#C8E6C9"]
 HF_FACT_VOR_DATA -> Ora_StgVehicleOffRoad [label="HF_FACT_VOR_DATA"];
 Tfm_LoadRecords -> HF_FACT_VOR_DATA [label="Tfm_LoadRecords"];
 ORA_Ext_Vehicle_Off_Road_Data -> Tfm_LoadRecords [label="ORA_Ext_Vehicle_Off_Road_Data"];
-HF_SMR_VEHICLE_DIM -> Tfm_LoadRecords [label="Lookup", style=dashed];
-Tfm_LoadRecords -> Supp_VOR_Exception [label="Tfm_LoadRecords"];
+HF_SMR_VEHICLE_DIM -> Tfm_LoadRecords [label="Lookup"];
 Tfm_LoadRecords_decision_1 [shape=diamond, label="svException=-1", fillcolor="#FADBD8"];
 Tfm_LoadRecords -> Tfm_LoadRecords_decision_1 [label="Constraint"];
 Tfm_LoadRecords_decision_1 -> Supp_VOR_Exception [label="Valid", color=blue];
