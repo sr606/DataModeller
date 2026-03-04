@@ -588,6 +588,7 @@ class LineageAgent:
         show_edge_labels = bool(profile.get("show_edge_labels", True))
         show_job_type_note = bool(profile.get("show_job_type_note", True))
         show_decisions = bool(profile.get("show_decisions", include_decisions))
+        show_dataset_nodes = bool(profile.get("show_dataset_nodes", False))
 
         # Canonicalize stage names to eliminate duplicate nodes caused by case/spacing variants.
         by_key: Dict[str, Stage] = {}
@@ -751,7 +752,7 @@ class LineageAgent:
         for s in process_stages:
             if stage_layer.get(s.name) == "target":
                 st = s.stage_type.lower()
-                shape = "note" if ("seqfile" in st or "exception" in s.name.lower()) else "cylinder"
+                shape = "folder" if ("seqfile" in st or "exception" in s.name.lower()) else "cylinder"
                 nid = node_ids[s.name]
                 if nid not in declared_nodes:
                     lines.append(f'{nid} [label="{_dot_escape(s.name)}", shape={shape}, fillcolor="#C8E6C9"];')
@@ -784,7 +785,7 @@ class LineageAgent:
             # In high-level view, collapse storage nodes to reduce clutter.
             if not include_lookup and (src in storage_keys or dst in storage_keys):
                 continue
-            if include_decisions and (src, dst) in decision_routed_pairs:
+            if include_decisions and not show_dataset_nodes and (src, dst) in decision_routed_pairs:
                 continue
             src_id = node_ids.get(src, "Unknown")
             dst_id = node_ids.get(dst)
@@ -792,21 +793,34 @@ class LineageAgent:
                 continue
             if src_id == "Unknown":
                 lines.append('Unknown [label="Unknown", shape=cylinder, fillcolor="#F5B7B1"];')
-            key = (src_id, dst_id, ds)
+            key = (src_id, dst_id, ds, show_dataset_nodes)
             if key in seen:
                 continue
             seen.add(key)
-            # Lookup edges are always rendered from store to consuming transformer.
-            if include_lookup and src in storage_keys and stage_layer.get(dst) == "transformation":
+            if show_dataset_nodes and ds:
+                ds_name = ds.strip()
+                ds_id = f"ds_{sanitize_id(ds_name, 'dataset')}"
+                if ds_id not in declared_nodes:
+                    lines.append(f'{ds_id} [label="{_dot_escape(ds_name)}", shape=oval, fillcolor="#F2F3F4"];')
+                    declared_nodes.add(ds_id)
                 if show_edge_labels:
-                    lines.append(f'{src_id} -> {dst_id} [label="Lookup"];')
+                    lines.append(f'{src_id} -> {ds_id} [label="Output"];')
+                    lines.append(f'{ds_id} -> {dst_id} [label="Input"];')
                 else:
-                    lines.append(f"{src_id} -> {dst_id};")
+                    lines.append(f"{src_id} -> {ds_id};")
+                    lines.append(f"{ds_id} -> {dst_id};")
             else:
-                if show_edge_labels:
-                    lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+                # Lookup edges are always rendered from store to consuming transformer.
+                if include_lookup and src in storage_keys and stage_layer.get(dst) == "transformation":
+                    if show_edge_labels:
+                        lines.append(f'{src_id} -> {dst_id} [label="Lookup"];')
+                    else:
+                        lines.append(f"{src_id} -> {dst_id};")
                 else:
-                    lines.append(f"{src_id} -> {dst_id};")
+                    if show_edge_labels:
+                        lines.append(f'{src_id} -> {dst_id} [label="{_dot_escape(ds or "Lineage")}"];')
+                    else:
+                        lines.append(f"{src_id} -> {dst_id};")
 
         if include_decisions and show_decisions:
             input_link_to_stage: Dict[str, List[str]] = {}
@@ -835,7 +849,7 @@ class LineageAgent:
                     lines.append(f'{did} [shape=diamond, label="{_dot_escape(label)}", fillcolor="#FADBD8"];')
                     lines.append(f'{sid} -> {did} [label="Constraint"];')
                     for t in targets:
-                        lines.append(f'{did} -> {node_ids[t]} [label="Valid", color=blue];')
+                        lines.append(f'{did} -> {node_ids[t]} [label="Exception", color=red, fontcolor=red];')
                     # If secondary outputs exist, route them from decision as Exception/Else.
                     secondary = []
                     for lk, tgts in output_link_targets.items():
@@ -845,7 +859,7 @@ class LineageAgent:
                             if t not in targets and t not in secondary:
                                 secondary.append(t)
                     for t in secondary[:2]:
-                        lines.append(f'{did} -> {node_ids[t]} [label="Exception", color=red, fontcolor=red];')
+                        lines.append(f'{did} -> {node_ids[t]} [label="Valid", color=blue];')
 
         source_count = sum(1 for s in process_stages if stage_layer.get(s.name) == "source")
         decision_count = sum(len(s.constraints) for s in process_stages)
@@ -887,15 +901,16 @@ class LineageAgent:
             graph_name,
             stages,
             links,
-            include_lookup=False,
-            include_decisions=False,
+            include_lookup=True,
+            include_decisions=True,
             job_semantics=state.get("job_semantics", {}),
             detected_join_count=state.get("detected_join_count"),
             profile={
-                "verbose_labels": False,
-                "show_edge_labels": False,
+                "verbose_labels": True,
+                "show_edge_labels": True,
                 "show_job_type_note": False,
-                "show_decisions": False,
+                "show_decisions": True,
+                "show_dataset_nodes": False,
             },
         )
         detailed = self._build_arch_dot(
@@ -911,6 +926,7 @@ class LineageAgent:
                 "show_edge_labels": True,
                 "show_job_type_note": True,
                 "show_decisions": True,
+                "show_dataset_nodes": True,
             },
         )
         state["high_dot"] = high
